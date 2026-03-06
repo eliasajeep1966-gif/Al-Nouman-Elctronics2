@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import { Product, LogEntry, ProductCategory } from './types';
+import { Product, LogEntry, LossEntry, ProductCategory } from './types';
 
 const PRODUCTS_KEY = 'noman_products';
 const LOGS_KEY = 'noman_logs';
+const LOSSES_KEY = 'noman_losses';
+
+// سعر صرف الدولار للليرة السورية
+export const USD_TO_SYP = 14000;
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -21,6 +25,11 @@ function formatTimestamp(): string {
     second: '2-digit',
     hour12: false,
   });
+}
+
+function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function loadFromStorage<T>(key: string, fallback: T): T {
@@ -41,6 +50,9 @@ export function useStore() {
   const [logs, setLogs] = useState<LogEntry[]>(() =>
     loadFromStorage<LogEntry[]>(LOGS_KEY, [])
   );
+  const [losses, setLosses] = useState<LossEntry[]>(() =>
+    loadFromStorage<LossEntry[]>(LOSSES_KEY, [])
+  );
 
   const saveProducts = useCallback((newProducts: Product[]) => {
     setProducts(newProducts);
@@ -57,7 +69,9 @@ export function useStore() {
     quantity: number,
     originalPrice: number,
     sellingPrice: number,
-    category: ProductCategory
+    category: ProductCategory,
+    originalPriceUSD?: number,
+    sellingPriceUSD?: number
   ) => {
     const newProduct: Product = {
       id: generateId(),
@@ -65,6 +79,8 @@ export function useStore() {
       quantity,
       originalPrice,
       sellingPrice,
+      originalPriceUSD,
+      sellingPriceUSD,
       category,
       createdAt: formatTimestamp(),
     };
@@ -152,13 +168,56 @@ export function useStore() {
     });
   }, []);
 
+  // إضافة خسارة لمنتج
+  const addLoss = useCallback((productId: string, lossAmount: number) => {
+    setProducts(prev => {
+      const product = prev.find(p => p.id === productId);
+      if (!product) return prev;
+
+      // تسجيل الخسارة في السجل
+      setLogs(prevLogs => {
+        const logEntry: LogEntry = {
+          id: generateId(),
+          productId,
+          productName: product.name,
+          action: 'loss',
+          lossAmount,
+          category: product.category,
+          timestamp: formatTimestamp(),
+        };
+        const updatedLogs = [logEntry, ...prevLogs];
+        localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
+        return updatedLogs;
+      });
+
+      // إضافة إلى قائمة الخسائر
+      setLosses(prevLosses => {
+        const lossEntry: LossEntry = {
+          id: generateId(),
+          productName: product.name,
+          amount: lossAmount,
+          category: product.category,
+          timestamp: formatTimestamp(),
+          month: getCurrentMonth(),
+        };
+        const updatedLosses = [lossEntry, ...prevLosses];
+        localStorage.setItem(LOSSES_KEY, JSON.stringify(updatedLosses));
+        return updatedLosses;
+      });
+
+      return prev;
+    });
+  }, []);
+
   return {
     products,
     logs,
+    losses,
     isLoaded: true,
     addProduct,
     deleteProduct,
     sellProduct,
+    addLoss,
     saveProducts,
     saveLogs,
   };

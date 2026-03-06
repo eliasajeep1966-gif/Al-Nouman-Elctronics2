@@ -2,28 +2,33 @@
 
 import { useState } from 'react';
 import { ProductCategory } from '@/lib/types';
+import { USD_TO_SYP } from '@/lib/useStore';
 
 interface AddProductModalProps {
   category: ProductCategory;
-  onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number) => void;
+  onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number) => void;
   onClose: () => void;
 }
 
 export default function AddProductModal({ category, onAdd, onClose }: AddProductModalProps) {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [originalPrice, setOriginalPrice] = useState('');
-  const [sellingPrice, setSellingPrice] = useState('');
+  const [originalPriceUSD, setOriginalPriceUSD] = useState('');
+  const [sellingPriceUSD, setSellingPriceUSD] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const categoryLabel = category === 'parts' ? 'قطعة غيار' : 'أداة إلكترونية';
+
+  // تحويل الدولار للليرة السورية
+  const originalPriceSYP = originalPriceUSD ? Math.round(parseFloat(originalPriceUSD) * USD_TO_SYP) : 0;
+  const sellingPriceSYP = sellingPriceUSD ? Math.round(parseFloat(sellingPriceUSD) * USD_TO_SYP) : 0;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!name.trim()) newErrors.name = 'اسم المنتج مطلوب';
     if (quantity < 1) newErrors.quantity = 'الكمية يجب أن تكون 1 على الأقل';
-    if (!originalPrice || parseFloat(originalPrice) < 0) newErrors.originalPrice = 'السعر الأصلي مطلوب';
-    if (!sellingPrice || parseFloat(sellingPrice) < 0) newErrors.sellingPrice = 'سعر البيع مطلوب';
+    if (!originalPriceUSD || parseFloat(originalPriceUSD) < 0) newErrors.originalPrice = 'السعر الأصلي مطلوب';
+    if (!sellingPriceUSD || parseFloat(sellingPriceUSD) < 0) newErrors.sellingPrice = 'سعر البيع مطلوب';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -31,13 +36,24 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    onAdd(name.trim(), quantity, parseFloat(originalPrice), parseFloat(sellingPrice));
+    const origUSD = parseFloat(originalPriceUSD);
+    const sellUSD = parseFloat(sellingPriceUSD);
+    onAdd(
+      name.trim(),
+      quantity,
+      Math.round(origUSD * USD_TO_SYP),
+      Math.round(sellUSD * USD_TO_SYP),
+      origUSD,
+      sellUSD
+    );
     onClose();
   };
 
-  const profit = sellingPrice && originalPrice
-    ? (parseFloat(sellingPrice) - parseFloat(originalPrice)).toFixed(2)
+  const profitUSD = sellingPriceUSD && originalPriceUSD
+    ? (parseFloat(sellingPriceUSD) - parseFloat(originalPriceUSD)).toFixed(2)
     : null;
+
+  const profitSYP = profitUSD ? Math.round(parseFloat(profitUSD) * USD_TO_SYP) : null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -56,6 +72,7 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
               ✕
             </button>
           </div>
+          <p className="text-blue-100 text-xs mt-1">سعر الصرف: 1$ = {USD_TO_SYP.toLocaleString()} ل.س</p>
         </div>
 
         {/* Form */}
@@ -110,52 +127,59 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
             {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
           </div>
 
-          {/* Prices */}
+          {/* Prices in USD */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                السعر الأصلي (د.ع) <span className="text-red-500">*</span>
+                السعر الأصلي ($) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                value={originalPrice}
-                onChange={e => setOriginalPrice(e.target.value)}
-                placeholder="0"
+                value={originalPriceUSD}
+                onChange={e => setOriginalPriceUSD(e.target.value)}
+                placeholder="0.00"
                 min={0}
                 step="0.01"
                 className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                   errors.originalPrice ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
               />
+              {originalPriceUSD && (
+                <p className="text-xs text-gray-500 mt-1">= {originalPriceSYP.toLocaleString()} ل.س</p>
+              )}
               {errors.originalPrice && <p className="text-red-500 text-xs mt-1">{errors.originalPrice}</p>}
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                سعر البيع (د.ع) <span className="text-red-500">*</span>
+                سعر البيع ($) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                value={sellingPrice}
-                onChange={e => setSellingPrice(e.target.value)}
-                placeholder="0"
+                value={sellingPriceUSD}
+                onChange={e => setSellingPriceUSD(e.target.value)}
+                placeholder="0.00"
                 min={0}
                 step="0.01"
                 className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                   errors.sellingPrice ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
               />
+              {sellingPriceUSD && (
+                <p className="text-xs text-gray-500 mt-1">= {sellingPriceSYP.toLocaleString()} ل.س</p>
+              )}
               {errors.sellingPrice && <p className="text-red-500 text-xs mt-1">{errors.sellingPrice}</p>}
             </div>
           </div>
 
           {/* Profit Preview */}
-          {profit !== null && (
+          {profitUSD !== null && (
             <div className={`rounded-lg p-3 text-sm font-semibold text-center ${
-              parseFloat(profit) >= 0
+              parseFloat(profitUSD) >= 0
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'bg-red-50 text-red-700 border border-red-200'
             }`}>
-              الربح المتوقع: {profit} د.ع للقطعة
+              <div>الربح المتوقع: {profitUSD}$ للقطعة</div>
+              <div className="text-xs mt-0.5 opacity-80">= {profitSYP?.toLocaleString()} ل.س</div>
             </div>
           )}
 

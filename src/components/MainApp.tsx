@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useStore } from '@/lib/useStore';
 import ProductsTab from './ProductsTab';
 import LogTab from './LogTab';
+import ProfitsTab from './ProfitsTab';
 
-type TabId = 'parts' | 'tools' | 'log';
+type TabId = 'parts' | 'tools' | 'profits' | 'log';
 
 interface Tab {
   id: TabId;
@@ -26,9 +27,16 @@ const tabs: Tab[] = [
   {
     id: 'tools',
     label: 'الأدوات',
-    icon: '🔧',
+    icon: '🖥️',
     color: 'text-gray-500',
     activeColor: 'text-blue-600',
+  },
+  {
+    id: 'profits',
+    label: 'الأرباح',
+    icon: '📊',
+    color: 'text-gray-500',
+    activeColor: 'text-green-600',
   },
   {
     id: 'log',
@@ -41,7 +49,7 @@ const tabs: Tab[] = [
 
 export default function MainApp() {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
-  const { products, logs, isLoaded, addProduct, deleteProduct, sellProduct } = useStore();
+  const { products, logs, losses, isLoaded, addProduct, deleteProduct, sellProduct, addLoss } = useStore();
 
   const partsProducts = products.filter(p => p.category === 'parts');
   const toolsProducts = products.filter(p => p.category === 'tools');
@@ -61,30 +69,28 @@ export default function MainApp() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-gradient-to-l from-blue-700 via-blue-600 to-blue-500 text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+        <div className="max-w-6xl mx-auto px-4 py-5">
+          <div className="flex flex-col items-center text-center mb-3">
+            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mb-2">
               ⚡
             </div>
+            <h1 className="text-3xl font-extrabold leading-tight tracking-wide">إلكترونيات النعمان</h1>
+            <p className="text-blue-100 text-sm mt-1">نظام إدارة المخزون</p>
+          </div>
+          <div className="flex justify-center gap-6 text-center">
             <div>
-              <h1 className="text-xl font-bold leading-tight">إلكترونيات النعمان</h1>
-              <p className="text-blue-100 text-xs">نظام إدارة المخزون</p>
+              <p className="text-xs text-blue-200">قطع الغيار</p>
+              <p className="font-bold text-lg leading-tight">{partsProducts.length}</p>
             </div>
-            <div className="mr-auto flex gap-4 text-center">
-              <div>
-                <p className="text-xs text-blue-200">قطع الغيار</p>
-                <p className="font-bold text-lg leading-tight">{partsProducts.length}</p>
-              </div>
-              <div className="w-px bg-white/20"></div>
-              <div>
-                <p className="text-xs text-blue-200">الأدوات</p>
-                <p className="font-bold text-lg leading-tight">{toolsProducts.length}</p>
-              </div>
-              <div className="w-px bg-white/20"></div>
-              <div>
-                <p className="text-xs text-blue-200">السجل</p>
-                <p className="font-bold text-lg leading-tight">{logs.length}</p>
-              </div>
+            <div className="w-px bg-white/20"></div>
+            <div>
+              <p className="text-xs text-blue-200">الأدوات</p>
+              <p className="font-bold text-lg leading-tight">{toolsProducts.length}</p>
+            </div>
+            <div className="w-px bg-white/20"></div>
+            <div>
+              <p className="text-xs text-blue-200">السجل</p>
+              <p className="font-bold text-lg leading-tight">{logs.length}</p>
             </div>
           </div>
         </div>
@@ -99,10 +105,12 @@ export default function MainApp() {
               const indicatorColor =
                 tab.id === 'parts' ? 'bg-orange-500' :
                 tab.id === 'tools' ? 'bg-blue-500' :
+                tab.id === 'profits' ? 'bg-green-500' :
                 'bg-purple-500';
               const activeBg =
                 tab.id === 'parts' ? 'text-orange-600' :
                 tab.id === 'tools' ? 'text-blue-600' :
+                tab.id === 'profits' ? 'text-green-600' :
                 'text-purple-600';
 
               return (
@@ -132,9 +140,10 @@ export default function MainApp() {
             <ProductsTab
               products={partsProducts}
               category="parts"
-              onAdd={(name, qty, orig, sell) => addProduct(name, qty, orig, sell, 'parts')}
+              onAdd={(name, qty, orig, sell, origUSD, sellUSD) => addProduct(name, qty, orig, sell, 'parts', origUSD, sellUSD)}
               onSell={sellProduct}
               onDelete={deleteProduct}
+              onLoss={addLoss}
             />
           </div>
         )}
@@ -143,10 +152,16 @@ export default function MainApp() {
             <ProductsTab
               products={toolsProducts}
               category="tools"
-              onAdd={(name, qty, orig, sell) => addProduct(name, qty, orig, sell, 'tools')}
+              onAdd={(name, qty, orig, sell, origUSD, sellUSD) => addProduct(name, qty, orig, sell, 'tools', origUSD, sellUSD)}
               onSell={sellProduct}
               onDelete={deleteProduct}
+              onLoss={addLoss}
             />
+          </div>
+        )}
+        {activeTab === 'profits' && (
+          <div className="slide-in">
+            <ProfitsTab logs={logs} losses={losses} />
           </div>
         )}
         {activeTab === 'log' && (
