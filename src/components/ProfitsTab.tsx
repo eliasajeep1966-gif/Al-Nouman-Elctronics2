@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { LogEntry, LossEntry } from '@/lib/types';
-import { USD_TO_SYP } from '@/lib/useStore';
 
 interface ProfitsTabProps {
   logs: LogEntry[];
   losses: LossEntry[];
+  exchangeRate: number;
 }
 
 function getMonthLabel(month: string): string {
@@ -15,7 +15,7 @@ function getMonthLabel(month: string): string {
   return date.toLocaleString('ar-IQ', { month: 'long', year: 'numeric' });
 }
 
-export default function ProfitsTab({ logs, losses }: ProfitsTabProps) {
+export default function ProfitsTab({ logs, losses, exchangeRate }: ProfitsTabProps) {
   const currentMonth = useMemo(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -96,7 +96,7 @@ export default function ProfitsTab({ logs, losses }: ProfitsTabProps) {
   }, [logs, losses, selectedMonth]);
 
   const formatSYP = (amount: number) => `${amount.toLocaleString()} ل.س`;
-  const formatUSD = (amount: number) => `$${(amount / USD_TO_SYP).toFixed(2)}`;
+  const formatUSD = (amount: number) => `$${(amount / exchangeRate).toFixed(2)}`;
 
   return (
     <div className="flex flex-col gap-4">

@@ -6,9 +6,10 @@ import { Product, LogEntry, LossEntry, ProductCategory } from './types';
 const PRODUCTS_KEY = 'noman_products';
 const LOGS_KEY = 'noman_logs';
 const LOSSES_KEY = 'noman_losses';
+const EXCHANGE_RATE_KEY = 'noman_exchange_rate';
 
-// سعر صرف الدولار للليرة السورية
-export const USD_TO_SYP = 14000;
+// سعر صرف الدولار للليرة السورية (الافتراضي)
+export const DEFAULT_USD_TO_SYP = 14000;
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -53,6 +54,14 @@ export function useStore() {
   const [losses, setLosses] = useState<LossEntry[]>(() =>
     loadFromStorage<LossEntry[]>(LOSSES_KEY, [])
   );
+  const [exchangeRate, setExchangeRateState] = useState<number>(() =>
+    loadFromStorage<number>(EXCHANGE_RATE_KEY, DEFAULT_USD_TO_SYP)
+  );
+
+  const setExchangeRate = useCallback((rate: number) => {
+    setExchangeRateState(rate);
+    localStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(rate));
+  }, []);
 
   const saveProducts = useCallback((newProducts: Product[]) => {
     setProducts(newProducts);
@@ -213,6 +222,7 @@ export function useStore() {
     products,
     logs,
     losses,
+    exchangeRate,
     isLoaded: true,
     addProduct,
     deleteProduct,
@@ -220,5 +230,6 @@ export function useStore() {
     addLoss,
     saveProducts,
     saveLogs,
+    setExchangeRate,
   };
 }

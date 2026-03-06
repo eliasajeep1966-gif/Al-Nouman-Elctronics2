@@ -2,20 +2,20 @@
 
 import { useState, useMemo } from 'react';
 import { Product, ProductCategory } from '@/lib/types';
-import { USD_TO_SYP } from '@/lib/useStore';
 import ProductCard from './ProductCard';
 import AddProductModal from './AddProductModal';
 
 interface ProductsTabProps {
   products: Product[];
   category: ProductCategory;
+  exchangeRate: number;
   onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number) => void;
   onSell: (id: string) => void;
   onDelete: (id: string) => void;
   onLoss: (id: string, amount: number) => void;
 }
 
-export default function ProductsTab({ products, category, onAdd, onSell, onDelete, onLoss }: ProductsTabProps) {
+export default function ProductsTab({ products, category, exchangeRate, onAdd, onSell, onDelete, onLoss }: ProductsTabProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
   const [showBalance, setShowBalance] = useState(false);
@@ -36,7 +36,7 @@ export default function ProductsTab({ products, category, onAdd, onSell, onDelet
 
   // الرصيد = مجموع المصاريف (التكلفة الكلية)
   const totalBalance = totalCost;
-  const totalBalanceUSD = totalBalance / USD_TO_SYP;
+  const totalBalanceUSD = totalBalance / exchangeRate;
 
   return (
     <div className="flex flex-col h-full">
@@ -53,7 +53,7 @@ export default function ProductsTab({ products, category, onAdd, onSell, onDelet
         <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
           <p className="text-xs text-gray-500 mb-1">الربح المتوقع</p>
           <p className={`text-xl font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            ${(totalProfit / USD_TO_SYP).toFixed(0)}
+            ${(totalProfit / exchangeRate).toFixed(0)}
           </p>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function ProductsTab({ products, category, onAdd, onSell, onDelet
           </div>
           <div className="mt-2 bg-white/10 rounded-lg p-2 text-center">
             <p className="text-xs text-purple-100">إجمالي قيمة المخزون بسعر البيع</p>
-            <p className="font-bold">${(totalValue / USD_TO_SYP).toFixed(2)} = {totalValue.toLocaleString()} ل.س</p>
+            <p className="font-bold">${(totalValue / exchangeRate).toFixed(2)} = {totalValue.toLocaleString()} ل.س</p>
           </div>
         </div>
       )}
@@ -147,6 +147,7 @@ export default function ProductsTab({ products, category, onAdd, onSell, onDelet
               <ProductCard
                 key={product.id}
                 product={product}
+                exchangeRate={exchangeRate}
                 onSell={onSell}
                 onDelete={onDelete}
                 onLoss={onLoss}
@@ -161,7 +162,7 @@ export default function ProductsTab({ products, category, onAdd, onSell, onDelet
         <div className="mt-4 bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-xl p-3 flex items-center justify-between shadow-sm">
           <span className="text-sm font-medium opacity-90">إجمالي قيمة المخزون</span>
           <div className="text-right">
-            <span className="font-bold text-lg">${(totalValue / USD_TO_SYP).toFixed(2)}</span>
+            <span className="font-bold text-lg">${(totalValue / exchangeRate).toFixed(2)}</span>
             <span className="text-xs text-blue-200 block">{totalValue.toLocaleString()} ل.س</span>
           </div>
         </div>
@@ -171,6 +172,7 @@ export default function ProductsTab({ products, category, onAdd, onSell, onDelet
       {showAddModal && (
         <AddProductModal
           category={category}
+          exchangeRate={exchangeRate}
           onAdd={onAdd}
           onClose={() => setShowAddModal(false)}
         />

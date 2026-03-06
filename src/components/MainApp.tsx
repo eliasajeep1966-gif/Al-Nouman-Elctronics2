@@ -49,7 +49,9 @@ const tabs: Tab[] = [
 
 export default function MainApp() {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
-  const { products, logs, losses, isLoaded, addProduct, deleteProduct, sellProduct, addLoss } = useStore();
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateInput, setRateInput] = useState('');
+  const { products, logs, losses, exchangeRate, isLoaded, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate } = useStore();
 
   const partsProducts = products.filter(p => p.category === 'parts');
   const toolsProducts = products.filter(p => p.category === 'tools');
@@ -77,6 +79,45 @@ export default function MainApp() {
             <h1 className="text-3xl font-extrabold leading-tight tracking-wide">إلكترونيات النعمان</h1>
             <p className="text-blue-100 text-sm mt-1">نظام إدارة المخزون</p>
           </div>
+
+          {/* Exchange Rate Row */}
+          <div className="flex justify-center mb-3">
+            <div className="bg-white/10 rounded-xl px-4 py-2 flex items-center gap-2">
+              <span className="text-blue-100 text-xs">💱 سعر الدولار:</span>
+              {editingRate ? (
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const val = parseInt(rateInput);
+                    if (val > 0) setExchangeRate(val);
+                    setEditingRate(false);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <input
+                    autoFocus
+                    type="number"
+                    value={rateInput}
+                    onChange={e => setRateInput(e.target.value)}
+                    className="w-24 text-center text-sm font-bold text-gray-800 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    min={1}
+                  />
+                  <span className="text-blue-100 text-xs">ل.س</span>
+                  <button type="submit" className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold px-2 py-1 rounded-lg transition-colors">✓</button>
+                  <button type="button" onClick={() => setEditingRate(false)} className="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-2 py-1 rounded-lg transition-colors">✕</button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => { setRateInput(exchangeRate.toString()); setEditingRate(true); }}
+                  className="flex items-center gap-1 group"
+                >
+                  <span className="text-white font-bold text-sm">{exchangeRate.toLocaleString()} ل.س</span>
+                  <span className="text-blue-200 text-xs group-hover:text-yellow-300 transition-colors">✏️</span>
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-center gap-6 text-center">
             <div>
               <p className="text-xs text-blue-200">قطع الغيار</p>
@@ -140,6 +181,7 @@ export default function MainApp() {
             <ProductsTab
               products={partsProducts}
               category="parts"
+              exchangeRate={exchangeRate}
               onAdd={(name, qty, orig, sell, origUSD, sellUSD) => addProduct(name, qty, orig, sell, 'parts', origUSD, sellUSD)}
               onSell={sellProduct}
               onDelete={deleteProduct}
@@ -152,6 +194,7 @@ export default function MainApp() {
             <ProductsTab
               products={toolsProducts}
               category="tools"
+              exchangeRate={exchangeRate}
               onAdd={(name, qty, orig, sell, origUSD, sellUSD) => addProduct(name, qty, orig, sell, 'tools', origUSD, sellUSD)}
               onSell={sellProduct}
               onDelete={deleteProduct}
@@ -161,7 +204,7 @@ export default function MainApp() {
         )}
         {activeTab === 'profits' && (
           <div className="slide-in">
-            <ProfitsTab logs={logs} losses={losses} />
+            <ProfitsTab logs={logs} losses={losses} exchangeRate={exchangeRate} />
           </div>
         )}
         {activeTab === 'log' && (

@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { ProductCategory } from '@/lib/types';
-import { USD_TO_SYP } from '@/lib/useStore';
 
 interface AddProductModalProps {
   category: ProductCategory;
+  exchangeRate: number;
   onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number) => void;
   onClose: () => void;
 }
 
-export default function AddProductModal({ category, onAdd, onClose }: AddProductModalProps) {
+export default function AddProductModal({ category, exchangeRate, onAdd, onClose }: AddProductModalProps) {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [originalPriceUSD, setOriginalPriceUSD] = useState('');
@@ -20,8 +20,8 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
   const categoryLabel = category === 'parts' ? 'قطعة غيار' : 'أداة إلكترونية';
 
   // تحويل الدولار للليرة السورية
-  const originalPriceSYP = originalPriceUSD ? Math.round(parseFloat(originalPriceUSD) * USD_TO_SYP) : 0;
-  const sellingPriceSYP = sellingPriceUSD ? Math.round(parseFloat(sellingPriceUSD) * USD_TO_SYP) : 0;
+  const originalPriceSYP = originalPriceUSD ? Math.round(parseFloat(originalPriceUSD) * exchangeRate) : 0;
+  const sellingPriceSYP = sellingPriceUSD ? Math.round(parseFloat(sellingPriceUSD) * exchangeRate) : 0;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -41,8 +41,8 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
     onAdd(
       name.trim(),
       quantity,
-      Math.round(origUSD * USD_TO_SYP),
-      Math.round(sellUSD * USD_TO_SYP),
+      Math.round(origUSD * exchangeRate),
+      Math.round(sellUSD * exchangeRate),
       origUSD,
       sellUSD
     );
@@ -53,7 +53,7 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
     ? (parseFloat(sellingPriceUSD) - parseFloat(originalPriceUSD)).toFixed(2)
     : null;
 
-  const profitSYP = profitUSD ? Math.round(parseFloat(profitUSD) * USD_TO_SYP) : null;
+  const profitSYP = profitUSD ? Math.round(parseFloat(profitUSD) * exchangeRate) : null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -72,7 +72,7 @@ export default function AddProductModal({ category, onAdd, onClose }: AddProduct
               ✕
             </button>
           </div>
-          <p className="text-blue-100 text-xs mt-1">سعر الصرف: 1$ = {USD_TO_SYP.toLocaleString()} ل.س</p>
+          <p className="text-blue-100 text-xs mt-1">سعر الصرف: 1$ = {exchangeRate.toLocaleString()} ل.س</p>
         </div>
 
         {/* Form */}

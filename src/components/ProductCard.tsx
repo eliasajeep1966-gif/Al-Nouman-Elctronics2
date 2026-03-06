@@ -2,16 +2,16 @@
 
 import { useState } from 'react';
 import { Product } from '@/lib/types';
-import { USD_TO_SYP } from '@/lib/useStore';
 
 interface ProductCardProps {
   product: Product;
+  exchangeRate: number;
   onSell: (id: string) => void;
   onDelete: (id: string) => void;
   onLoss: (id: string, amount: number) => void;
 }
 
-export default function ProductCard({ product, onSell, onDelete, onLoss }: ProductCardProps) {
+export default function ProductCard({ product, exchangeRate, onSell, onDelete, onLoss }: ProductCardProps) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showLossInput, setShowLossInput] = useState(false);
   const [lossAmountUSD, setLossAmountUSD] = useState('');
@@ -22,8 +22,8 @@ export default function ProductCard({ product, onSell, onDelete, onLoss }: Produ
     : '0';
 
   // حساب الأسعار بالدولار
-  const originalUSD = product.originalPriceUSD ?? (product.originalPrice / USD_TO_SYP);
-  const sellingUSD = product.sellingPriceUSD ?? (product.sellingPrice / USD_TO_SYP);
+  const originalUSD = product.originalPriceUSD ?? (product.originalPrice / exchangeRate);
+  const sellingUSD = product.sellingPriceUSD ?? (product.sellingPrice / exchangeRate);
   const profitUSD = sellingUSD - originalUSD;
 
   const isOutOfStock = product.quantity === 0;
@@ -32,7 +32,7 @@ export default function ProductCard({ product, onSell, onDelete, onLoss }: Produ
   const handleLossSubmit = () => {
     const amount = parseFloat(lossAmountUSD);
     if (!isNaN(amount) && amount > 0) {
-      onLoss(product.id, Math.round(amount * USD_TO_SYP));
+      onLoss(product.id, Math.round(amount * exchangeRate));
       setLossAmountUSD('');
       setShowLossInput(false);
     }
@@ -110,7 +110,7 @@ export default function ProductCard({ product, onSell, onDelete, onLoss }: Produ
               </button>
             </div>
             {lossAmountUSD && (
-              <p className="text-xs text-orange-600 mt-1">= {Math.round(parseFloat(lossAmountUSD) * USD_TO_SYP).toLocaleString()} ل.س</p>
+              <p className="text-xs text-orange-600 mt-1">= {Math.round(parseFloat(lossAmountUSD) * exchangeRate).toLocaleString()} ل.س</p>
             )}
           </div>
         )}
