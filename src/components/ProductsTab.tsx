@@ -12,7 +12,7 @@ interface ProductsTabProps {
   onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number) => void;
   onSell: (id: string) => void;
   onDelete: (id: string) => void;
-  onLoss: (id: string, amount: number) => void;
+  onLoss: (id: string) => void;
 }
 
 export default function ProductsTab({ products, category, exchangeRate, onAdd, onSell, onDelete, onLoss }: ProductsTabProps) {
@@ -34,25 +34,26 @@ export default function ProductsTab({ products, category, exchangeRate, onAdd, o
   const totalProfit = products.reduce((sum, p) => sum + (p.sellingPrice - p.originalPrice) * p.quantity, 0);
   const totalItems = products.reduce((sum, p) => sum + p.quantity, 0);
 
-  // الرصيد = مجموع المصاريف (التكلفة الكلية)
   const totalBalance = totalCost;
   const totalBalanceUSD = totalBalance / exchangeRate;
+
+  const fmt = (n: number) => n.toLocaleString('en-US');
 
   return (
     <div className="flex flex-col h-full">
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
-          <p className="text-xs text-gray-500 mb-1">إجمالي المنتجات</p>
-          <p className="text-xl font-bold text-gray-800">{products.length}</p>
+        <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
+          <p className="text-xs text-gray-500 mb-1">المنتجات</p>
+          <p className="text-2xl font-bold text-gray-800">{products.length}</p>
         </div>
-        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
+        <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
           <p className="text-xs text-gray-500 mb-1">إجمالي القطع</p>
-          <p className="text-xl font-bold text-blue-600">{totalItems}</p>
+          <p className="text-2xl font-bold text-indigo-600">{totalItems}</p>
         </div>
-        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 text-center">
+        <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
           <p className="text-xs text-gray-500 mb-1">الربح المتوقع</p>
-          <p className={`text-xl font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <p className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
             ${(totalProfit / exchangeRate).toFixed(0)}
           </p>
         </div>
@@ -60,30 +61,30 @@ export default function ProductsTab({ products, category, exchangeRate, onAdd, o
 
       {/* Balance Card */}
       {showBalance && (
-        <div className="mb-4 bg-gradient-to-l from-purple-600 to-purple-700 text-white rounded-xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-4 bg-gradient-to-br from-violet-600 to-purple-700 text-white rounded-2xl p-4 shadow-md">
+          <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-lg">💰 الرصيد (مجموع المصاريف)</h3>
             <button
               onClick={() => setShowBalance(false)}
-              className="text-white/70 hover:text-white text-sm"
+              className="text-white/70 hover:text-white text-sm w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             >
               ✕
             </button>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/20 rounded-lg p-3 text-center">
+            <div className="bg-white/15 rounded-xl p-3 text-center backdrop-blur-sm">
               <p className="text-xs text-purple-100 mb-1">بالدولار</p>
-              <p className="font-bold text-xl">${totalBalanceUSD.toFixed(2)}</p>
+              <p className="font-bold text-2xl">${totalBalanceUSD.toFixed(2)}</p>
             </div>
-            <div className="bg-white/20 rounded-lg p-3 text-center">
+            <div className="bg-white/15 rounded-xl p-3 text-center backdrop-blur-sm">
               <p className="text-xs text-purple-100 mb-1">بالليرة السورية</p>
-              <p className="font-bold text-xl">{totalBalance.toLocaleString()}</p>
+              <p className="font-bold text-xl">{fmt(totalBalance)}</p>
               <p className="text-xs text-purple-200">ل.س</p>
             </div>
           </div>
-          <div className="mt-2 bg-white/10 rounded-lg p-2 text-center">
-            <p className="text-xs text-purple-100">إجمالي قيمة المخزون بسعر البيع</p>
-            <p className="font-bold">${(totalValue / exchangeRate).toFixed(2)} = {totalValue.toLocaleString()} ل.س</p>
+          <div className="mt-3 bg-white/10 rounded-xl p-2.5 text-center">
+            <p className="text-xs text-purple-100">قيمة المخزون بسعر البيع</p>
+            <p className="font-bold text-sm">${(totalValue / exchangeRate).toFixed(2)} = {fmt(totalValue)} ل.س</p>
           </div>
         </div>
       )}
@@ -97,7 +98,7 @@ export default function ProductsTab({ products, category, exchangeRate, onAdd, o
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={`البحث في ${categoryLabel}...`}
-            className="w-full border border-gray-200 rounded-xl pr-9 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white shadow-sm"
+            className="w-full border border-gray-200 rounded-xl pr-9 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white shadow-sm"
           />
           {search && (
             <button
@@ -112,15 +113,15 @@ export default function ProductsTab({ products, category, exchangeRate, onAdd, o
           onClick={() => setShowBalance(!showBalance)}
           className={`px-3 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-sm whitespace-nowrap ${
             showBalance
-              ? 'bg-purple-600 text-white'
-              : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
+              ? 'bg-violet-600 text-white shadow-violet-200'
+              : 'bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200'
           }`}
         >
           💰 الرصيد
         </button>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-sm whitespace-nowrap flex items-center gap-1.5"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-sm shadow-indigo-200 whitespace-nowrap flex items-center gap-1.5"
         >
           <span className="text-base">+</span>
           إضافة
@@ -159,11 +160,11 @@ export default function ProductsTab({ products, category, exchangeRate, onAdd, o
 
       {/* Total Value Footer */}
       {products.length > 0 && (
-        <div className="mt-4 bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-xl p-3 flex items-center justify-between shadow-sm">
+        <div className="mt-4 bg-gradient-to-br from-indigo-600 to-blue-700 text-white rounded-2xl p-3 flex items-center justify-between shadow-md shadow-indigo-100">
           <span className="text-sm font-medium opacity-90">إجمالي قيمة المخزون</span>
           <div className="text-right">
             <span className="font-bold text-lg">${(totalValue / exchangeRate).toFixed(2)}</span>
-            <span className="text-xs text-blue-200 block">{totalValue.toLocaleString()} ل.س</span>
+            <span className="text-xs text-blue-200 block">{fmt(totalValue)} ل.س</span>
           </div>
         </div>
       )}

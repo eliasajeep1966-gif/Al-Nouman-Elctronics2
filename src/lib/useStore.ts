@@ -17,7 +17,8 @@ function generateId(): string {
 
 function formatTimestamp(): string {
   const now = new Date();
-  return now.toLocaleString('ar-IQ', {
+  return now.toLocaleString('en-GB', {
+    timeZone: 'Asia/Damascus',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -30,7 +31,9 @@ function formatTimestamp(): string {
 
 function getCurrentMonth(): string {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  // Use Damascus timezone
+  const damascusDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Damascus' }));
+  return `${damascusDate.getFullYear()}-${String(damascusDate.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function loadFromStorage<T>(key: string, fallback: T): T {
@@ -177,11 +180,19 @@ export function useStore() {
     });
   }, []);
 
-  // إضافة خسارة لمنتج
-  const addLoss = useCallback((productId: string, lossAmount: number) => {
+  // تسجيل خسارة: تنقص وحدة من المخزون وتضيف الخسارة بسعرها الأصلي
+  const addLoss = useCallback((productId: string) => {
     setProducts(prev => {
       const product = prev.find(p => p.id === productId);
-      if (!product) return prev;
+      if (!product || product.quantity <= 0) return prev;
+
+      // تنقيص الكمية بمقدار 1
+      const updated = prev.map(p =>
+        p.id === productId ? { ...p, quantity: p.quantity - 1 } : p
+      );
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(updated));
+
+      const lossAmount = product.originalPrice; // الخسارة = السعر الأصلي للقطعة
 
       // تسجيل الخسارة في السجل
       setLogs(prevLogs => {
@@ -190,7 +201,9 @@ export function useStore() {
           productId,
           productName: product.name,
           action: 'loss',
+          quantity: 1,
           lossAmount,
+          originalPrice: product.originalPrice,
           category: product.category,
           timestamp: formatTimestamp(),
         };
@@ -214,7 +227,7 @@ export function useStore() {
         return updatedLosses;
       });
 
-      return prev;
+      return updated;
     });
   }, []);
 

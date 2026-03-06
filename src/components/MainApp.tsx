@@ -12,40 +12,21 @@ interface Tab {
   id: TabId;
   label: string;
   icon: string;
-  color: string;
-  activeColor: string;
 }
 
 const tabs: Tab[] = [
-  {
-    id: 'parts',
-    label: 'قطع الغيار',
-    icon: '⚙️',
-    color: 'text-gray-500',
-    activeColor: 'text-orange-600',
-  },
-  {
-    id: 'tools',
-    label: 'الأدوات',
-    icon: '🖥️',
-    color: 'text-gray-500',
-    activeColor: 'text-blue-600',
-  },
-  {
-    id: 'profits',
-    label: 'الأرباح',
-    icon: '📊',
-    color: 'text-gray-500',
-    activeColor: 'text-green-600',
-  },
-  {
-    id: 'log',
-    label: 'السجل',
-    icon: '📋',
-    color: 'text-gray-500',
-    activeColor: 'text-purple-600',
-  },
+  { id: 'parts', label: 'قطع الغيار', icon: '⚙️' },
+  { id: 'tools', label: 'الأدوات', icon: '🖥️' },
+  { id: 'profits', label: 'الأرباح', icon: '📊' },
+  { id: 'log', label: 'السجل', icon: '📋' },
 ];
+
+const tabColors: Record<TabId, { active: string; indicator: string; shadow: string }> = {
+  parts:   { active: 'text-orange-600',  indicator: 'bg-orange-500',  shadow: 'shadow-orange-100' },
+  tools:   { active: 'text-indigo-600',  indicator: 'bg-indigo-500',  shadow: 'shadow-indigo-100' },
+  profits: { active: 'text-emerald-600', indicator: 'bg-emerald-500', shadow: 'shadow-emerald-100' },
+  log:     { active: 'text-purple-600',  indicator: 'bg-purple-500',  shadow: 'shadow-purple-100' },
+};
 
 export default function MainApp() {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
@@ -58,7 +39,7 @@ export default function MainApp() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="text-4xl mb-3 animate-pulse">⚡</div>
           <p className="text-gray-500 font-medium">جاري التحميل...</p>
@@ -68,22 +49,24 @@ export default function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-gradient-to-l from-blue-700 via-blue-600 to-blue-500 text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-5">
-          <div className="flex flex-col items-center text-center mb-3">
-            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mb-2">
+      <header className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl">
+        <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
+          {/* Title Row */}
+          <div className="flex flex-col items-center text-center mb-4">
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center text-3xl mb-2 border border-white/10 shadow-lg">
               ⚡
             </div>
-            <h1 className="text-3xl font-extrabold leading-tight tracking-wide">إلكترونيات النعمان</h1>
-            <p className="text-blue-100 text-sm mt-1">نظام إدارة المخزون</p>
+            <h1 className="text-3xl font-extrabold leading-tight tracking-wide bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+              إلكترونيات النعمان
+            </h1>
           </div>
 
           {/* Exchange Rate Row */}
-          <div className="flex justify-center mb-3">
-            <div className="bg-white/10 rounded-xl px-4 py-2 flex items-center gap-2">
-              <span className="text-blue-100 text-xs">💱 سعر الدولار:</span>
+          <div className="flex justify-center mb-4">
+            <div className="bg-white/8 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-2.5 flex items-center gap-2">
+              <span className="text-indigo-300 text-xs font-medium">💱 سعر الدولار:</span>
               {editingRate ? (
                 <form
                   onSubmit={e => {
@@ -102,70 +85,62 @@ export default function MainApp() {
                     className="w-24 text-center text-sm font-bold text-gray-800 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-300"
                     min={1}
                   />
-                  <span className="text-blue-100 text-xs">ل.س</span>
+                  <span className="text-indigo-300 text-xs">ل.س</span>
                   <button type="submit" className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold px-2 py-1 rounded-lg transition-colors">✓</button>
-                  <button type="button" onClick={() => setEditingRate(false)} className="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-2 py-1 rounded-lg transition-colors">✕</button>
+                  <button type="button" onClick={() => setEditingRate(false)} className="bg-white/15 hover:bg-white/25 text-white text-xs font-bold px-2 py-1 rounded-lg transition-colors">✕</button>
                 </form>
               ) : (
                 <button
                   onClick={() => { setRateInput(exchangeRate.toString()); setEditingRate(true); }}
-                  className="flex items-center gap-1 group"
+                  className="flex items-center gap-1.5 group"
                 >
-                  <span className="text-white font-bold text-sm">{exchangeRate.toLocaleString()} ل.س</span>
-                  <span className="text-blue-200 text-xs group-hover:text-yellow-300 transition-colors">✏️</span>
+                  <span className="text-white font-bold text-sm">{exchangeRate.toLocaleString('en-US')} ل.س</span>
+                  <span className="text-indigo-300 text-xs group-hover:text-yellow-300 transition-colors">✏️</span>
                 </button>
               )}
             </div>
           </div>
 
-          <div className="flex justify-center gap-6 text-center">
+          {/* Stats Row */}
+          <div className="flex justify-center gap-8 text-center">
             <div>
-              <p className="text-xs text-blue-200">قطع الغيار</p>
-              <p className="font-bold text-lg leading-tight">{partsProducts.length}</p>
+              <p className="text-xs text-indigo-300 mb-0.5">قطع الغيار</p>
+              <p className="font-bold text-xl leading-tight">{partsProducts.length}</p>
             </div>
-            <div className="w-px bg-white/20"></div>
+            <div className="w-px bg-white/10"></div>
             <div>
-              <p className="text-xs text-blue-200">الأدوات</p>
-              <p className="font-bold text-lg leading-tight">{toolsProducts.length}</p>
+              <p className="text-xs text-indigo-300 mb-0.5">الأدوات</p>
+              <p className="font-bold text-xl leading-tight">{toolsProducts.length}</p>
             </div>
-            <div className="w-px bg-white/20"></div>
+            <div className="w-px bg-white/10"></div>
             <div>
-              <p className="text-xs text-blue-200">السجل</p>
-              <p className="font-bold text-lg leading-tight">{logs.length}</p>
+              <p className="text-xs text-indigo-300 mb-0.5">السجل</p>
+              <p className="font-bold text-xl leading-tight">{logs.length}</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Tab Navigation */}
-      <div className="bg-white shadow-sm sticky top-0 z-10">
+      <div className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex">
             {tabs.map(tab => {
               const isActive = activeTab === tab.id;
-              const indicatorColor =
-                tab.id === 'parts' ? 'bg-orange-500' :
-                tab.id === 'tools' ? 'bg-blue-500' :
-                tab.id === 'profits' ? 'bg-green-500' :
-                'bg-purple-500';
-              const activeBg =
-                tab.id === 'parts' ? 'text-orange-600' :
-                tab.id === 'tools' ? 'text-blue-600' :
-                tab.id === 'profits' ? 'text-green-600' :
-                'text-purple-600';
+              const colors = tabColors[tab.id];
 
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 relative transition-all ${
-                    isActive ? activeBg : 'text-gray-400 hover:text-gray-600'
+                  className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 relative transition-all duration-200 ${
+                    isActive ? colors.active : 'text-gray-400 hover:text-gray-600'
                   }`}
                 >
                   <span className="text-xl">{tab.icon}</span>
                   <span className="text-xs font-semibold">{tab.label}</span>
                   {isActive && (
-                    <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${indicatorColor} rounded-t-full`} />
+                    <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${colors.indicator} rounded-t-full`} />
                   )}
                 </button>
               );
