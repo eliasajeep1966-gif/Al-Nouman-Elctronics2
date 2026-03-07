@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '@/lib/useStore';
 import ProductsTab from './ProductsTab';
 import LogTab from './LogTab';
 import ProfitsTab from './ProfitsTab';
+import BackupButtons from './BackupButtons';
 
 type TabId = 'parts' | 'tools' | 'profits' | 'log';
 
@@ -32,10 +33,36 @@ export default function MainApp() {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState('');
-  const { products, logs, losses, exchangeRate, isLoaded, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate } = useStore();
+  const { products, logs, losses, exchangeRate, isLoaded, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData } = useStore();
 
   const partsProducts = products.filter(p => p.category === 'parts');
   const toolsProducts = products.filter(p => p.category === 'tools');
+
+  // دالة تصدير البيانات لملف JSON
+  const handleExport = () => {
+    const data = exportData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const timestamp = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `noman-backup-${timestamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // دالة استيراد البيانات من ملف JSON
+  const handleImport = (jsonString: string) => {
+    const success = importData(jsonString);
+    if (success) {
+      alert('✅ تم استعادة البيانات بنجاح!');
+      window.location.reload();
+    } else {
+      alert('❌ فشل استعادة البيانات. تأكد من صحة الملف.');
+    }
+  };
 
   if (!isLoaded) {
     return (
@@ -64,7 +91,14 @@ export default function MainApp() {
           </div>
 
           {/* Exchange Rate Row */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <BackupButtons 
+              onExport={handleExport} 
+              onImport={handleImport}
+              products={products}
+              logs={logs}
+              losses={losses}
+            />
             <div className="bg-white/8 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-2.5 flex items-center gap-2">
               <span className="text-indigo-300 text-xs font-medium">💱 سعر الدولار:</span>
               {editingRate ? (

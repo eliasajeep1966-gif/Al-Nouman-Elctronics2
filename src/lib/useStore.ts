@@ -244,5 +244,39 @@ export function useStore() {
     saveProducts,
     saveLogs,
     setExchangeRate,
+    exportData: () => {
+      return JSON.stringify({
+        products,
+        logs,
+        losses,
+        exchangeRate,
+        exportedAt: formatTimestamp(),
+      }, null, 2);
+    },
+    importData: (jsonString: string) => {
+      try {
+        const data = JSON.parse(jsonString);
+        if (data.products) {
+          setProducts(data.products);
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(data.products));
+        }
+        if (data.logs) {
+          setLogs(data.logs);
+          localStorage.setItem(LOGS_KEY, JSON.stringify(data.logs));
+        }
+        if (data.losses) {
+          setLosses(data.losses);
+          localStorage.setItem(LOSSES_KEY, JSON.stringify(data.losses));
+        }
+        if (data.exchangeRate) {
+          setExchangeRateState(data.exchangeRate);
+          localStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(data.exchangeRate));
+        }
+        return true;
+      } catch (e) {
+        console.error('Import failed:', e);
+        return false;
+      }
+    },
   };
 }
