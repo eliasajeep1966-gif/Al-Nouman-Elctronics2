@@ -92,13 +92,13 @@ export default function MainApp() {
             </h1>
           </div>
 
-          {/* Exchange Rate Row */}
+          {/* Exchange Rate Row - Dollar Price Stays */}
           <div className="flex justify-center items-center gap-3 mb-4">
             <button
               onClick={() => setShowSettings(true)}
-              className="absolute left-4 top-6 w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-lg border border-white/10 hover:bg-white/20 transition-colors"
+              className="w-full sm:w-auto bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-lg border border-white/10 hover:bg-white/20 transition-colors px-3 py-2"
             >
-              ⚙️
+              <span className="text-xl">⚙️</span>
             </button>
             <div className="bg-white/8 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-2.5 flex items-center gap-2">
               <span className="text-indigo-300 text-xs font-medium">💱 سعر الدولار:</span>
@@ -135,37 +135,38 @@ export default function MainApp() {
               )}
             </div>
           </div>
-
-          {/* Stats Row */}
-          <div className="flex justify-center gap-8 text-center">
-            <div>
-              <p className="text-xs text-indigo-300 mb-0.5">قطع الغيار</p>
-              <p className="font-bold text-xl leading-tight">{partsProducts.length}</p>
-            </div>
-            <div className="w-px bg-white/10"></div>
-            <div>
-              <p className="text-xs text-indigo-300 mb-0.5">الأدوات</p>
-              <p className="font-bold text-xl leading-tight">{toolsProducts.length}</p>
-            </div>
-            <div className="w-px bg-white/10"></div>
-            <div>
-              <p className="text-xs text-indigo-300 mb-0.5">السجل</p>
-              <p className="font-bold text-xl leading-tight">{logs.length}</p>
-            </div>
-          </div>
         </div>
       </header>
 
-      {/* Backup Buttons - Below Settings */}
+      {/* Left Side Section - Below Settings */}
       <div className="bg-gradient-to-b from-slate-100 to-white py-4 border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 flex justify-center">
-          <BackupButtons 
-            onExport={handleExport} 
-            onImport={handleImport}
-            products={products}
-            logs={logs}
-            losses={losses}
-          />
+        <div className="max-w-6xl mx-auto px-4">
+          {/* Stats Row on Left */}
+          <div className="flex justify-center gap-6 text-center mb-4">
+            <div className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-100">
+              <p className="text-xs text-gray-500 mb-0.5">قطع الغيار</p>
+              <p className="font-bold text-lg leading-tight text-orange-600">{partsProducts.length}</p>
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-100">
+              <p className="text-xs text-gray-500 mb-0.5">الأدوات</p>
+              <p className="font-bold text-lg leading-tight text-indigo-600">{toolsProducts.length}</p>
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-100">
+              <p className="text-xs text-gray-500 mb-0.5">السجل</p>
+              <p className="font-bold text-lg leading-tight text-purple-600">{logs.length}</p>
+            </div>
+          </div>
+
+          {/* Backup Buttons */}
+          <div className="flex justify-center">
+            <BackupButtons 
+              onExport={handleExport} 
+              onImport={handleImport}
+              products={products}
+              logs={logs}
+              losses={losses}
+            />
+          </div>
         </div>
       </div>
 
