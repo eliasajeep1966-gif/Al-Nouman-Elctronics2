@@ -231,14 +231,18 @@ export default function MainApp() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-4 text-center shadow-lg">
-        <div className="absolute top-0 left-0 w-20 h-20 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 right-0 w-16 h-16 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/2 left-4 w-2 h-2 bg-white/30 rounded-full"></div>
-        <div className="absolute top-1/3 right-8 w-3 h-3 bg-white/20 rounded-full"></div>
-        <p className="relative text-white font-bold text-lg tracking-wider drop-shadow-md">إلكترونيات النعمان</p>
-        <p className="relative text-white/90 font-semibold text-sm mt-1 tracking-widest">BY ELIAS AJEEP</p>
+      {/* Footer with decorative boxes */}
+      <footer className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-6 text-center shadow-2xl border-t border-slate-700">
+        {/* Decorative boxes row */}
+        <div className="flex justify-center gap-3 mb-4">
+          <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-sm shadow-lg"></div>
+          <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-sm shadow-lg"></div>
+          <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-sm shadow-lg"></div>
+          <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-sm shadow-lg"></div>
+          <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-sm shadow-lg"></div>
+        </div>
+        <p className="text-white font-bold text-xl tracking-wider mb-2">إلكترونيات النعمان</p>
+        <p className="text-lg font-semibold tracking-widest bg-gradient-to-r from-amber-700 via-amber-600 to-white bg-clip-text text-transparent">BY ELIAS AJEEP</p>
       </footer>
 
       {/* Settings Modal */}
