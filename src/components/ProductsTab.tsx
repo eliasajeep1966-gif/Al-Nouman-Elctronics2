@@ -9,7 +9,7 @@ interface ProductsTabProps {
   products: Product[];
   category: ProductCategory;
   exchangeRate: number;
-  onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number) => void;
+  onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number, specifications?: string) => void;
   onSell: (id: string) => void;
   onDelete: (id: string) => void;
   onLoss: (id: string) => void;

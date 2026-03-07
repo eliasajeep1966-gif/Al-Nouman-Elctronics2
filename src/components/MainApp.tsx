@@ -199,7 +199,7 @@ export default function MainApp() {
               products={partsProducts}
               category="parts"
               exchangeRate={exchangeRate}
-              onAdd={(name, qty, orig, sell, origUSD, sellUSD) => addProduct(name, qty, orig, sell, 'parts', origUSD, sellUSD)}
+              onAdd={(name, qty, orig, sell, origUSD, sellUSD, specs) => addProduct(name, qty, orig, sell, 'parts', origUSD, sellUSD, specs)}
               onSell={sellProduct}
               onDelete={deleteProduct}
               onLoss={addLoss}
@@ -212,7 +212,7 @@ export default function MainApp() {
               products={toolsProducts}
               category="tools"
               exchangeRate={exchangeRate}
-              onAdd={(name, qty, orig, sell, origUSD, sellUSD) => addProduct(name, qty, orig, sell, 'tools', origUSD, sellUSD)}
+              onAdd={(name, qty, orig, sell, origUSD, sellUSD, specs) => addProduct(name, qty, orig, sell, 'tools', origUSD, sellUSD, specs)}
               onSell={sellProduct}
               onDelete={deleteProduct}
               onLoss={addLoss}
@@ -232,9 +232,13 @@ export default function MainApp() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-3 text-center">
-        <p className="text-xs text-gray-400">إلكترونيات النعمان © {new Date().getFullYear()}</p>
-        <p className="text-xs text-gray-300 mt-1">BY ELIAS AJEEP</p>
+      <footer className="relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-4 text-center shadow-lg">
+        <div className="absolute top-0 left-0 w-20 h-20 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/2 left-4 w-2 h-2 bg-white/30 rounded-full"></div>
+        <div className="absolute top-1/3 right-8 w-3 h-3 bg-white/20 rounded-full"></div>
+        <p className="relative text-white font-bold text-lg tracking-wider drop-shadow-md">إلكترونيات النعمان</p>
+        <p className="relative text-white/90 font-semibold text-sm mt-1 tracking-widest">BY ELIAS AJEEP</p>
       </footer>
 
       {/* Settings Modal */}

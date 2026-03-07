@@ -6,7 +6,7 @@ import { ProductCategory } from '@/lib/types';
 interface AddProductModalProps {
   category: ProductCategory;
   exchangeRate: number;
-  onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number) => void;
+  onAdd: (name: string, quantity: number, originalPrice: number, sellingPrice: number, originalPriceUSD?: number, sellingPriceUSD?: number, specifications?: string) => void;
   onClose: () => void;
 }
 
@@ -15,6 +15,7 @@ export default function AddProductModal({ category, exchangeRate, onAdd, onClose
   const [quantity, setQuantity] = useState(1);
   const [originalPriceUSD, setOriginalPriceUSD] = useState('');
   const [sellingPriceUSD, setSellingPriceUSD] = useState('');
+  const [specifications, setSpecifications] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const categoryLabel = category === 'parts' ? 'قطعة غيار' : 'أداة إلكترونية';
@@ -37,13 +38,15 @@ export default function AddProductModal({ category, exchangeRate, onAdd, onClose
     if (!validate()) return;
     const origUSD = parseFloat(originalPriceUSD);
     const sellUSD = parseFloat(sellingPriceUSD);
+    const specs = specifications.trim() || undefined;
     onAdd(
       name.trim(),
       quantity,
       Math.round(origUSD * exchangeRate),
       Math.round(sellUSD * exchangeRate),
       origUSD,
-      sellUSD
+      sellUSD,
+      specs
     );
     onClose();
   };
@@ -185,6 +188,23 @@ export default function AddProductModal({ category, exchangeRate, onAdd, onClose
               <div className="text-xs mt-0.5 opacity-80">= {profitSYP !== null ? fmt(profitSYP) : 0} ل.س</div>
             </div>
           )}
+
+          {/* Specifications */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              مواصفات المنتج <span className="text-gray-400 font-normal">(اختياري)</span>
+            </label>
+            <textarea
+              value={specifications}
+              onChange={e => setSpecifications(e.target.value)}
+              placeholder="أضف مواصفات المنتج إن وجدت..."
+              rows={2}
+              className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+            />
+            {specifications.trim() && (
+              <p className="text-xs text-indigo-500 mt-1">✓ ستظهر المواصفات تحت الأسعار في البطاقة</p>
+            )}
+          </div>
 
           {/* Buttons */}
           <div className="flex gap-3 pt-2">

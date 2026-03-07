@@ -9,6 +9,7 @@ export interface Product {
   originalPriceUSD?: number; // بالدولار (اختياري)
   sellingPriceUSD?: number;  // بالدولار (اختياري)
   category: ProductCategory;
+  specifications?: string; // مواصفات المنتج (اختياري)
   createdAt: string;
 }
 

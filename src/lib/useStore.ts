@@ -83,7 +83,8 @@ export function useStore() {
     sellingPrice: number,
     category: ProductCategory,
     originalPriceUSD?: number,
-    sellingPriceUSD?: number
+    sellingPriceUSD?: number,
+    specifications?: string
   ) => {
     const newProduct: Product = {
       id: generateId(),
@@ -94,6 +95,7 @@ export function useStore() {
       originalPriceUSD,
       sellingPriceUSD,
       category,
+      specifications,
       createdAt: formatTimestamp(),
     };
 

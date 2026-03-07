@@ -21,6 +21,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [transferMode, setTransferMode] = useState<'send' | 'receive' | null>(null);
   const [qrData, setQrData] = useState('');
 
+  // Get export/import functions from store
+  const { exportData, importData } = useStore();
+
   // Apply dark mode class on mount and when darkMode changes
   useEffect(() => {
     if (darkMode) {
