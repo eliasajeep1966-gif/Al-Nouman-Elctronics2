@@ -100,13 +100,6 @@ export default function MainApp() {
             >
               ⚙️
             </button>
-            <BackupButtons 
-              onExport={handleExport} 
-              onImport={handleImport}
-              products={products}
-              logs={logs}
-              losses={losses}
-            />
             <div className="bg-white/8 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-2.5 flex items-center gap-2">
               <span className="text-indigo-300 text-xs font-medium">💱 سعر الدولار:</span>
               {editingRate ? (
@@ -162,6 +155,19 @@ export default function MainApp() {
           </div>
         </div>
       </header>
+
+      {/* Backup Buttons - Below Settings */}
+      <div className="bg-gradient-to-b from-slate-100 to-white py-4 border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 flex justify-center">
+          <BackupButtons 
+            onExport={handleExport} 
+            onImport={handleImport}
+            products={products}
+            logs={logs}
+            losses={losses}
+          />
+        </div>
+      </div>
 
       {/* Tab Navigation */}
       <div className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
