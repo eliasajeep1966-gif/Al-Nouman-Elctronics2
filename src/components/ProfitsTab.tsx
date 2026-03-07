@@ -128,21 +128,21 @@ export default function ProfitsTab({ logs, losses, exchangeRate }: ProfitsTabPro
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-emerald-50 rounded-xl p-2.5 text-center border border-emerald-100">
               <p className="text-xs text-emerald-600 mb-1">الأرباح</p>
-              <p className="font-bold text-emerald-700 text-sm">{formatUSD(monthlyData.partsProfit)}</p>
-              <p className="text-xs text-emerald-500">{formatSYP(monthlyData.partsProfit)}</p>
+              <p className="font-bold text-emerald-700 text-sm">{formatSYP(monthlyData.partsProfit)}</p>
+              <p className="text-xs text-emerald-500">{formatUSD(monthlyData.partsProfit)}</p>
             </div>
             <div className="bg-red-50 rounded-xl p-2.5 text-center border border-red-100">
               <p className="text-xs text-red-600 mb-1">الخسائر</p>
-              <p className="font-bold text-red-700 text-sm">{formatUSD(monthlyData.totalPartsLoss)}</p>
-              <p className="text-xs text-red-500">{formatSYP(monthlyData.totalPartsLoss)}</p>
+              <p className="font-bold text-red-700 text-sm">{formatSYP(monthlyData.totalPartsLoss)}</p>
+              <p className="text-xs text-red-500">{formatUSD(monthlyData.totalPartsLoss)}</p>
             </div>
             <div className={`rounded-xl p-2.5 text-center border ${monthlyData.netPartsProfit >= 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-red-100 border-red-200'}`}>
               <p className={`text-xs mb-1 ${monthlyData.netPartsProfit >= 0 ? 'text-indigo-600' : 'text-red-600'}`}>الصافي</p>
               <p className={`font-bold text-sm ${monthlyData.netPartsProfit >= 0 ? 'text-indigo-700' : 'text-red-700'}`}>
-                {formatUSD(monthlyData.netPartsProfit)}
+                {formatSYP(monthlyData.netPartsProfit)}
               </p>
               <p className={`text-xs ${monthlyData.netPartsProfit >= 0 ? 'text-indigo-500' : 'text-red-500'}`}>
-                {formatSYP(monthlyData.netPartsProfit)}
+                {formatUSD(monthlyData.netPartsProfit)}
               </p>
             </div>
           </div>
@@ -174,21 +174,21 @@ export default function ProfitsTab({ logs, losses, exchangeRate }: ProfitsTabPro
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-emerald-50 rounded-xl p-2.5 text-center border border-emerald-100">
               <p className="text-xs text-emerald-600 mb-1">الأرباح</p>
-              <p className="font-bold text-emerald-700 text-sm">{formatUSD(monthlyData.toolsProfit)}</p>
-              <p className="text-xs text-emerald-500">{formatSYP(monthlyData.toolsProfit)}</p>
+              <p className="font-bold text-emerald-700 text-sm">{formatSYP(monthlyData.toolsProfit)}</p>
+              <p className="text-xs text-emerald-500">{formatUSD(monthlyData.toolsProfit)}</p>
             </div>
             <div className="bg-red-50 rounded-xl p-2.5 text-center border border-red-100">
               <p className="text-xs text-red-600 mb-1">الخسائر</p>
-              <p className="font-bold text-red-700 text-sm">{formatUSD(monthlyData.totalToolsLoss)}</p>
-              <p className="text-xs text-red-500">{formatSYP(monthlyData.totalToolsLoss)}</p>
+              <p className="font-bold text-red-700 text-sm">{formatSYP(monthlyData.totalToolsLoss)}</p>
+              <p className="text-xs text-red-500">{formatUSD(monthlyData.totalToolsLoss)}</p>
             </div>
             <div className={`rounded-xl p-2.5 text-center border ${monthlyData.netToolsProfit >= 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-red-100 border-red-200'}`}>
               <p className={`text-xs mb-1 ${monthlyData.netToolsProfit >= 0 ? 'text-indigo-600' : 'text-red-600'}`}>الصافي</p>
               <p className={`font-bold text-sm ${monthlyData.netToolsProfit >= 0 ? 'text-indigo-700' : 'text-red-700'}`}>
-                {formatUSD(monthlyData.netToolsProfit)}
+                {formatSYP(monthlyData.netToolsProfit)}
               </p>
               <p className={`text-xs ${monthlyData.netToolsProfit >= 0 ? 'text-indigo-500' : 'text-red-500'}`}>
-                {formatSYP(monthlyData.netToolsProfit)}
+                {formatUSD(monthlyData.netToolsProfit)}
               </p>
             </div>
           </div>
@@ -223,13 +223,13 @@ export default function ProfitsTab({ logs, losses, exchangeRate }: ProfitsTabPro
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white/15 rounded-xl p-3 text-center backdrop-blur-sm">
-              <p className="text-xs opacity-80 mb-1">صافي الربح بالدولار</p>
-              <p className="font-bold text-2xl">{formatUSD(monthlyData.totalNet)}</p>
-            </div>
-            <div className="bg-white/15 rounded-xl p-3 text-center backdrop-blur-sm">
               <p className="text-xs opacity-80 mb-1">صافي الربح بالليرة</p>
               <p className="font-bold text-2xl">{fmt(monthlyData.totalNet)}</p>
               <p className="text-xs opacity-70">ل.س</p>
+            </div>
+            <div className="bg-white/15 rounded-xl p-3 text-center backdrop-blur-sm">
+              <p className="text-xs opacity-80 mb-1">صافي الربح بالدولار</p>
+              <p className="font-bold text-2xl">{formatUSD(monthlyData.totalNet)}</p>
             </div>
           </div>
           <div className="mt-3 bg-white/10 rounded-xl p-2.5 text-center">
