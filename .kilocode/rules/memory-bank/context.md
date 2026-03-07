@@ -1,19 +1,23 @@
-# Active Context: Next.js Starter Template
+# Active Context: إلكترونيات النعمان - نظام إدارة المخزون
 
 ## Current State
 
-**Template Status**: ✅ Ready for development
+**Status**: ✅ التطبيق يعمل
 
-The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. It's ready for AI-assisted expansion to build any type of application.
+تطبيق ويب (PWA) لإدارة مخزون محل إلكترونيات مع ميزات متقدمة.
 
 ## Recently Completed
 
-- [x] Base Next.js 16 setup with App Router
-- [x] TypeScript configuration with strict mode
-- [x] Tailwind CSS 4 integration
-- [x] ESLint configuration
-- [x] Memory bank documentation
-- [x] Recipe system for common features
+- [x] إضافة زر الإعدادات مع الوضع الليلي
+- [x] إضافة حذف كل البيانات مع تأكيد
+- [x] إضافة مشاركة التطبيق
+- [x] إضافة نقل البيانات بين الأجهزة (P2P)
+- [x] إضافة "BY ELIAS AJEEP" في الفوتر
+- [x] إصلاح مشكلة Turbopack في Next.js 16
+- [x] بناء موقع إلكترونيات النعمان - نظام إدارة مخزون كامل بثلاث واجهات
+- [x] إضافة أسعار بالدولار، واجهة الأرباح الشهرية، خيار الرصيد والخسارة
+- [x] إضافة خانة سعر صرف الدولار ديناميكية
+- [x] إضافة النسخ الاحتياطي (JSON) + استعادة البيانات + تصدير Excel + تطبيق PWA
 
 ## Current Structure
 
