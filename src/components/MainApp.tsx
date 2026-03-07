@@ -6,6 +6,7 @@ import ProductsTab from './ProductsTab';
 import LogTab from './LogTab';
 import ProfitsTab from './ProfitsTab';
 import BackupButtons from './BackupButtons';
+import SettingsModal from './SettingsModal';
 
 type TabId = 'parts' | 'tools' | 'profits' | 'log';
 
@@ -33,6 +34,7 @@ export default function MainApp() {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const { products, logs, losses, exchangeRate, isLoaded, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData } = useStore();
 
   const partsProducts = products.filter(p => p.category === 'parts');
@@ -92,6 +94,12 @@ export default function MainApp() {
 
           {/* Exchange Rate Row */}
           <div className="flex justify-center items-center gap-3 mb-4">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="absolute left-4 top-6 w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-lg border border-white/10 hover:bg-white/20 transition-colors"
+            >
+              ⚙️
+            </button>
             <BackupButtons 
               onExport={handleExport} 
               onImport={handleImport}
@@ -226,7 +234,11 @@ export default function MainApp() {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-3 text-center">
         <p className="text-xs text-gray-400">إلكترونيات النعمان © {new Date().getFullYear()}</p>
+        <p className="text-xs text-gray-300 mt-1">BY ELIAS AJEEP</p>
       </footer>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }

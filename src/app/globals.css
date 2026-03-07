@@ -8,6 +8,47 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Dark mode styles */
+.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark .bg-slate-50 {
+  background-color: #0f172a;
+}
+
+.dark .bg-white {
+  background-color: #1e293b;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1e293b;
+}
+
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: #e2e8f0;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #94a3b8;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: #334155;
+}
+
+.dark input,
+.dark textarea {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
 /* Smooth transitions */
 .tab-transition {
   transition: all 0.3s ease;
