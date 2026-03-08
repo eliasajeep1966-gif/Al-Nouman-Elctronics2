@@ -1,8 +1,10 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "إلكترونيات النعمان",
     "slug": "mobile",
     "version": "1.0.0",
+    "sdkVersion": "55.0.0",
+    "scheme": "electronics-store",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
