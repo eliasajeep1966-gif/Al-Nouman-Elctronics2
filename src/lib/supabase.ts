@@ -5,7 +5,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_qTIEUPupuTwwSMpJTgvvcA_GWtga_KK';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Database table names
 export const TABLES = {
   PRODUCTS: 'products',
   LOGS: 'logs',
