@@ -26,6 +26,7 @@ type DetailsProps = {
   onDelete: (productId: string) => void;
   onLoss: (productId: string) => void;
   exchangeRate: number;
+  isDarkMode: boolean;
 };
 
 export default function ProductDetailsScreen({
@@ -36,6 +37,7 @@ export default function ProductDetailsScreen({
   onDelete,
   onLoss,
   exchangeRate,
+  isDarkMode,
 }: DetailsProps) {
   const { product } = route.params;
   
@@ -110,19 +112,33 @@ export default function ProductDetailsScreen({
     );
   };
 
+  const theme = isDarkMode ? {
+    bg: '#0f172a',
+    card: '#1e293b',
+    text: '#f1f5f9',
+    textMuted: '#94a3b8',
+    border: '#334155',
+  } : {
+    bg: '#f8fafc',
+    card: '#ffffff',
+    text: '#1e293b',
+    textMuted: '#64748b',
+    border: '#e2e8f0',
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.name}>{currentProduct.name}</Text>
+        <View style={[styles.header, { backgroundColor: isDarkMode ? '#1e1b4b' : '#1e293b' }]}>
+          <Text style={[styles.name, { color: '#fff' }]}>{currentProduct.name}</Text>
           <View style={styles.metaRow}>
-            <View style={styles.categoryBadge}>
+            <View style={[styles.categoryBadge, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.15)' }]}>
               <Text style={styles.category}>
                 {currentProduct.category === 'parts' ? '⚙️ قطع غيار' : '🖥️ أدوات'}
               </Text>
             </View>
-            <Text style={styles.date}>{currentProduct.createdAt}</Text>
+            <Text style={[styles.date, { color: isDarkMode ? '#94a3b8' : '#94a3b8' }]}>{currentProduct.createdAt}</Text>
           </View>
         </View>
 

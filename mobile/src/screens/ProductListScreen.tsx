@@ -323,7 +323,7 @@ export default function ProductListScreen({
           </View>
           <Text style={styles.logTime}>{item.timestamp}</Text>
         </View>
-        <Text style={[styles.logProduct, { color: theme.text }]}>{item.productName}</Text>
+        <Text style={[styles.logProduct, { color: '#4f46e5' }]}>{item.productName}</Text>
         {item.quantity && <Text style={[styles.logQty, { color: theme.textMuted }]}>الكمية: {item.quantity}</Text>}
         {item.profit !== undefined && item.profit > 0 && (
           <Text style={[styles.logProfit, { color: '#16a34a' }]}>💵 ربح: {item.profit.toLocaleString('en-US')} ل.س</Text>
@@ -434,7 +434,6 @@ export default function ProductListScreen({
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <TouchableOpacity style={styles.newMonthBtn} onPress={handleNewMonth}><Text style={styles.newMonthBtnText}>+شهر</Text></TouchableOpacity>
             </View>
           </View>
 
@@ -477,11 +476,13 @@ export default function ProductListScreen({
 
       {/* Footer with BY ELIAS AJEEB */}
       <View style={[styles.footer, { backgroundColor: COLORS.purpleDark }]}>
-        <View style={styles.footerDecor}>
-          <View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} />
+        <View style={styles.footerContent}>
+          <Text style={styles.footerBrand}>BY ELIAS AJEEP</Text>
+          <View style={styles.footerDecor}>
+            <View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} />
+          </View>
+          <Text style={styles.footerTitle}>إلكترونيات النعمان</Text>
         </View>
-        <Text style={styles.footerTitle}>إلكترونيات النعمان</Text>
-        <Text style={styles.footerBrand}>BY ELIAS AJEEP</Text>
       </View>
 
       {/* Settings Modal */}
@@ -585,7 +586,7 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   cardInfo: { flex: 1 },
   productName: { fontSize: 16, fontWeight: 'bold' },
-  productDate: { fontSize: 11, marginTop: 2 },
+  productDate: { fontSize: 13, marginTop: 2 },
   stockBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   stockOk: { backgroundColor: '#dcfce7' },
   stockLow: { backgroundColor: '#fef3c7' },
@@ -606,7 +607,7 @@ const styles = StyleSheet.create({
   lossBox: { backgroundColor: '#fee2e2' },
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyText: { fontSize: 16, fontWeight: '500' },
-  fab: { position: 'absolute', bottom: 80, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#312e81', alignItems: 'center', justifyContent: 'center', elevation: 5, shadowColor: '#312e81', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
+  fab: { position: 'absolute', bottom: 90, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#312e81', alignItems: 'center', justifyContent: 'center', elevation: 5, shadowColor: '#312e81', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
   fabText: { fontSize: 28, color: '#fff', fontWeight: '300' },
   profitsContainer: { flex: 1, padding: 16 },
   monthSelector: { borderRadius: 16, padding: 12, marginBottom: 12 },
@@ -642,13 +643,14 @@ const styles = StyleSheet.create({
   logAction: { fontSize: 13, fontWeight: 'bold' },
   categoryBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   categoryText: { fontSize: 11, fontWeight: '600' },
-  logTime: { fontSize: 10, color: '#94a3b8' },
+  logTime: { fontSize: 12, color: '#94a3b8' },
   logProduct: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
   logQty: { fontSize: 12 },
   logProfit: { fontSize: 12, fontWeight: '600', marginTop: 2 },
   logLoss: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  footer: { paddingVertical: 16, alignItems: 'center' },
-  footerDecor: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  footer: { paddingVertical: 10, alignItems: 'center' },
+  footerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 16 },
+  footerDecor: { flexDirection: 'row', gap: 8 },
   decorBox: { width: 16, height: 16, borderRadius: 4, backgroundColor: '#f59e0b' },
   footerTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   footerBrand: { fontSize: 14, fontWeight: '600', color: '#f59e0b' },

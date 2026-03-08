@@ -32,9 +32,10 @@ type Props = {
   ) => void;
   exchangeRate: number;
   category: ProductCategory;
+  isDarkMode: boolean;
 };
 
-export default function AddProductScreen({ navigation, onAdd, exchangeRate, category }: Props) {
+export default function AddProductScreen({ navigation, onAdd, exchangeRate, category, isDarkMode }: Props) {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [originalPriceUSD, setOriginalPriceUSD] = useState('');
@@ -93,15 +94,31 @@ export default function AddProductScreen({ navigation, onAdd, exchangeRate, cate
 
   const categoryLabel = category === 'parts' ? 'قطعة غيار' : 'أداة إلكترونية';
 
+  const theme = isDarkMode ? {
+    bg: '#0f172a',
+    card: '#1e293b',
+    text: '#f1f5f9',
+    textMuted: '#94a3b8',
+    border: '#334155',
+    inputBg: '#1e293b',
+  } : {
+    bg: '#f8fafc',
+    card: '#ffffff',
+    text: '#1e293b',
+    textMuted: '#64748b',
+    border: '#e2e8f0',
+    inputBg: '#ffffff',
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: isDarkMode ? '#1e1b4b' : '#1e293b' }]}>
             <Text style={styles.title}>إضافة {categoryLabel} جديدة</Text>
             <Text style={styles.subtitle}>سعر الصرف: 1$ = {exchangeRate.toLocaleString('en-US')} ل.س</Text>
           </View>
@@ -110,25 +127,25 @@ export default function AddProductScreen({ navigation, onAdd, exchangeRate, cate
           <View style={styles.form}>
             {/* Name */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>اسم المنتج *</Text>
+              <Text style={[styles.label, { color: theme.text }]}>اسم المنتج *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                 value={name}
                 onChangeText={setName}
                 placeholder="أدخل اسم المنتج"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.textMuted}
               />
             </View>
 
             {/* Quantity */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>الكمية *</Text>
+              <Text style={[styles.label, { color: theme.text }]}>الكمية *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                 value={quantity}
                 onChangeText={setQuantity}
                 placeholder="أدخل الكمية"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.textMuted}
                 keyboardType="numeric"
               />
             </View>
@@ -138,25 +155,25 @@ export default function AddProductScreen({ navigation, onAdd, exchangeRate, cate
             
             <View style={styles.row}>
               <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={styles.label}>سعر التكلفة ($) *</Text>
+                <Text style={[styles.label, { color: theme.text }]}>سعر التكلفة ($) *</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                   value={originalPriceUSD}
                   onChangeText={setOriginalPriceUSD}
                   placeholder="$0.00"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="decimal-pad"
                 />
               </View>
 
               <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={styles.label}>سعر البيع ($) *</Text>
+                <Text style={[styles.label, { color: theme.text }]}>سعر البيع ($) *</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                   value={sellingPriceUSD}
                   onChangeText={setSellingPriceUSD}
                   placeholder="$0.00"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="decimal-pad"
                 />
               </View>
@@ -165,15 +182,15 @@ export default function AddProductScreen({ navigation, onAdd, exchangeRate, cate
             {/* Calculated SYP Prices */}
             {(originalPriceUSD || sellingPriceUSD) && (
               <View style={styles.calculatedSection}>
-                <Text style={styles.calculatedTitle}>الأسعار بالليرة السورية</Text>
+                <Text style={[styles.calculatedTitle, { color: theme.textMuted }]}>الأسعار بالليرة السورية</Text>
                 <View style={styles.calculatedRow}>
-                  <View style={styles.calculatedCard}>
-                    <Text style={styles.calculatedLabel}>سعر التكلفة</Text>
-                    <Text style={styles.calculatedValue}>{originalPriceSYP.toLocaleString('en-US')} ل.س</Text>
+                  <View style={[styles.calculatedCard, { backgroundColor: theme.card }]}>
+                    <Text style={[styles.calculatedLabel, { color: theme.textMuted }]}>سعر التكلفة</Text>
+                    <Text style={[styles.calculatedValue, { color: theme.text }]}>{originalPriceSYP.toLocaleString('en-US')} ل.س</Text>
                   </View>
-                  <View style={styles.calculatedCard}>
-                    <Text style={styles.calculatedLabel}>سعر البيع</Text>
-                    <Text style={styles.calculatedValue}>{sellingPriceSYP.toLocaleString('en-US')} ل.س</Text>
+                  <View style={[styles.calculatedCard, { backgroundColor: theme.card }]}>
+                    <Text style={[styles.calculatedLabel, { color: theme.textMuted }]}>سعر البيع</Text>
+                    <Text style={[styles.calculatedValue, { color: theme.text }]}>{sellingPriceSYP.toLocaleString('en-US')} ل.س</Text>
                   </View>
                   {profitSYP !== null && (
                     <View style={[styles.calculatedCard, profitSYP >= 0 ? styles.profitCard : styles.lossCard]}>
@@ -192,13 +209,13 @@ export default function AddProductScreen({ navigation, onAdd, exchangeRate, cate
 
             {/* Specifications */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>المواصفات (اختياري)</Text>
+              <Text style={[styles.label, { color: theme.text }]}>المواصفات (اختياري)</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                 value={specifications}
                 onChangeText={setSpecifications}
                 placeholder="أدخل مواصفات المنتج"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.textMuted}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"

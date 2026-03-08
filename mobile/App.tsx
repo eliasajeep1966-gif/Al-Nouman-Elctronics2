@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StatusBar, ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+import { StatusBar, ActivityIndicator, View, Text, StyleSheet, I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ProductListScreen from './src/screens/ProductListScreen';
@@ -11,6 +11,11 @@ import { useStore } from './src/store/useStore';
 import { Product } from './src/types';
 
 const DARK_MODE_KEY = '@noman_dark_mode';
+
+// Enable RTL for Arabic
+if (!I18nManager.isRTL) {
+  I18nManager.forceRTL(true);
+}
 
 export type RootStackParamList = {
   ProductList: undefined;
@@ -114,6 +119,7 @@ function AppContent() {
             onDelete={deleteProduct}
             onLoss={addLoss}
             exchangeRate={exchangeRate}
+            isDarkMode={isDarkMode}
           />
         )}
       </Stack.Screen>
@@ -132,6 +138,7 @@ function AppContent() {
             onAdd={addProduct}
             exchangeRate={exchangeRate}
             category={props.route.params?.category || 'parts'}
+            isDarkMode={isDarkMode}
           />
         )}
       </Stack.Screen>
