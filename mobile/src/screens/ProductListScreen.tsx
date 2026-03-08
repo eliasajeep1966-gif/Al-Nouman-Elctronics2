@@ -127,7 +127,7 @@ export default function ProductListScreen({
   // حساب الإحصائيات
   const totalProducts = categoryProducts.length;
   const totalItems = categoryProducts.reduce((sum, p) => sum + p.quantity, 0);
-  const totalProfit = categoryProducts.reduce((sum, p => sum + (p.sellingPrice - p.originalPrice) * p.quantity), 0);
+  const totalProfit = categoryProducts.reduce((sum, p) => sum + (p.sellingPrice - p.originalPrice) * p.quantity, 0);
   const totalProfitUSD = totalProfit / exchangeRate;
   const totalCost = categoryProducts.reduce((sum, p) => sum + p.originalPrice * p.quantity, 0);
   const totalCostUSD = totalCost / exchangeRate;
