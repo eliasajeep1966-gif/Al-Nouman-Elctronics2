@@ -69,22 +69,25 @@ export function useStore() {
     await AsyncStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(rate));
   }, []);
 
+  // دالة إضافة منتج - USD كمدخل رئيسي (مثل الموقع)
   const addProduct = useCallback((
     name: string,
     quantity: number,
-    originalPrice: number,
-    sellingPrice: number,
+    originalPriceUSD: number,
+    sellingPriceUSD: number,
     category: ProductCategory,
-    originalPriceUSD?: number,
-    sellingPriceUSD?: number,
     specifications?: string
   ) => {
+    // تحويل من دولار إلى ليرة
+    const originalPriceSYP = Math.round(originalPriceUSD * exchangeRate);
+    const sellingPriceSYP = Math.round(sellingPriceUSD * exchangeRate);
+
     const newProduct: Product = {
       id: generateId(),
       name,
       quantity,
-      originalPrice,
-      sellingPrice,
+      originalPrice: originalPriceSYP,
+      sellingPrice: sellingPriceSYP,
       originalPriceUSD,
       sellingPriceUSD,
       category,
@@ -102,15 +105,17 @@ export function useStore() {
       productName: name,
       action: 'added',
       quantity,
-      originalPrice,
-      sellingPrice,
+      originalPrice: originalPriceSYP,
+      sellingPrice: sellingPriceSYP,
+      originalPriceUSD,
+      sellingPriceUSD,
       category,
       timestamp: formatTimestamp(),
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
     AsyncStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
-  }, [products, logs]);
+  }, [products, logs, exchangeRate]);
 
   const deleteProduct = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -144,6 +149,10 @@ export function useStore() {
     AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(updatedProducts));
 
     const profit = product.sellingPrice - product.originalPrice;
+    const profitUSD = product.sellingPriceUSD && product.originalPriceUSD
+      ? product.sellingPriceUSD - product.originalPriceUSD
+      : profit / exchangeRate;
+
     const logEntry: LogEntry = {
       id: generateId(),
       productId,
@@ -152,14 +161,17 @@ export function useStore() {
       quantity: 1,
       originalPrice: product.originalPrice,
       sellingPrice: product.sellingPrice,
+      originalPriceUSD: product.originalPriceUSD,
+      sellingPriceUSD: product.sellingPriceUSD,
       profit,
+      profitUSD,
       category: product.category,
       timestamp: formatTimestamp(),
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
     AsyncStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
-  }, [products, logs]);
+  }, [products, logs, exchangeRate]);
 
   const addLoss = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -172,6 +184,7 @@ export function useStore() {
     AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(updatedProducts));
 
     const lossAmount = product.originalPrice;
+    const lossAmountUSD = product.originalPriceUSD || lossAmount / exchangeRate;
 
     const logEntry: LogEntry = {
       id: generateId(),
@@ -180,7 +193,9 @@ export function useStore() {
       action: 'loss',
       quantity: 1,
       lossAmount,
+      lossAmountUSD,
       originalPrice: product.originalPrice,
+      originalPriceUSD: product.originalPriceUSD,
       category: product.category,
       timestamp: formatTimestamp(),
     };
@@ -192,6 +207,7 @@ export function useStore() {
       id: generateId(),
       productName: product.name,
       amount: lossAmount,
+      amountUSD: lossAmountUSD,
       category: product.category,
       timestamp: formatTimestamp(),
       month: getCurrentMonth(),
@@ -199,7 +215,54 @@ export function useStore() {
     const updatedLosses = [lossEntry, ...losses];
     setLosses(updatedLosses);
     AsyncStorage.setItem(LOSSES_KEY, JSON.stringify(updatedLosses));
-  }, [products, logs, losses]);
+  }, [products, logs, losses, exchangeRate]);
+
+  // دالة تصدير البيانات
+  const exportData = useCallback(() => {
+    const data = {
+      products,
+      logs,
+      losses,
+      exchangeRate,
+      exportedAt: formatTimestamp(),
+    };
+    return JSON.stringify(data, null, 2);
+  }, [products, logs, losses, exchangeRate]);
+
+  // دالة استيراد البيانات
+  const importData = useCallback((jsonString: string): boolean => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (data.products) {
+        setProducts(data.products);
+        AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(data.products));
+      }
+      if (data.logs) {
+        setLogs(data.logs);
+        AsyncStorage.setItem(LOGS_KEY, JSON.stringify(data.logs));
+      }
+      if (data.losses) {
+        setLosses(data.losses);
+        AsyncStorage.setItem(LOSSES_KEY, JSON.stringify(data.losses));
+      }
+      if (data.exchangeRate) {
+        setExchangeRateState(data.exchangeRate);
+        AsyncStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(data.exchangeRate));
+      }
+      return true;
+    } catch (e) {
+      console.error('Import error:', e);
+      return false;
+    }
+  }, []);
+
+  // حذف كل البيانات
+  const clearAllData = useCallback(async () => {
+    setProducts([]);
+    setLogs([]);
+    setLosses([]);
+    await AsyncStorage.multiRemove([PRODUCTS_KEY, LOGS_KEY, LOSSES_KEY]);
+  }, []);
 
   return {
     products,
@@ -212,5 +275,8 @@ export function useStore() {
     sellProduct,
     addLoss,
     setExchangeRate,
+    exportData,
+    importData,
+    clearAllData,
   };
 }

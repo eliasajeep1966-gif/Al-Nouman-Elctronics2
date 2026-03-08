@@ -25,47 +25,54 @@ type Props = {
   onAdd: (
     name: string,
     quantity: number,
-    originalPrice: number,
-    sellingPrice: number,
+    originalPriceUSD: number,
+    sellingPriceUSD: number,
     category: ProductCategory,
-    originalPriceUSD?: number,
-    sellingPriceUSD?: number,
     specifications?: string
   ) => void;
+  exchangeRate: number;
+  category: ProductCategory;
 };
 
-export default function AddProductScreen({ navigation, onAdd }: Props) {
+export default function AddProductScreen({ navigation, onAdd, exchangeRate, category }: Props) {
   const [name, setName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [originalPrice, setOriginalPrice] = useState('');
-  const [sellingPrice, setSellingPrice] = useState('');
+  const [quantity, setQuantity] = useState('1');
   const [originalPriceUSD, setOriginalPriceUSD] = useState('');
   const [sellingPriceUSD, setSellingPriceUSD] = useState('');
-  const [category, setCategory] = useState<ProductCategory>('parts');
   const [specifications, setSpecifications] = useState('');
+
+  // حساب الأسعار بالليرة
+  const originalPriceSYP = originalPriceUSD ? Math.round(parseFloat(originalPriceUSD) * exchangeRate) : 0;
+  const sellingPriceSYP = sellingPriceUSD ? Math.round(parseFloat(sellingPriceUSD) * exchangeRate) : 0;
+
+  // حساب الربح
+  const profitUSD = sellingPriceUSD && originalPriceUSD
+    ? (parseFloat(sellingPriceUSD) - parseFloat(originalPriceUSD)).toFixed(2)
+    : null;
+  const profitSYP = profitUSD ? Math.round(parseFloat(profitUSD) * exchangeRate) : null;
 
   const handleSubmit = () => {
     // Validation
     if (!name.trim()) {
-      Alert.alert('خطأ', 'يرجى إدخال اسم المنتج');
+      Alert.alert('خطأ', 'اسم المنتج مطلوب');
       return;
     }
 
     const qty = parseInt(quantity) || 0;
-    const origPrice = parseFloat(originalPrice) || 0;
-    const sellPrice = parseFloat(sellingPrice) || 0;
+    const origUSD = parseFloat(originalPriceUSD) || 0;
+    const sellUSD = parseFloat(sellingPriceUSD) || 0;
 
-    if (qty <= 0) {
-      Alert.alert('خطأ', 'يرجى إدخال كمية صحيحة');
+    if (qty < 1) {
+      Alert.alert('خطأ', 'الكمية يجب أن تكون 1 على الأقل');
       return;
     }
 
-    if (origPrice <= 0 || sellPrice <= 0) {
-      Alert.alert('خطأ', 'يرجى إدخال أسعار صحيحة');
+    if (origUSD <= 0 || sellUSD <= 0) {
+      Alert.alert('خطأ', 'الأسعار مطلوبة');
       return;
     }
 
-    if (sellPrice < origPrice) {
+    if (sellUSD < origUSD) {
       Alert.alert('تحذير', 'سعر البيع أقل من سعر التكلفة!');
     }
 
@@ -73,11 +80,9 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
     onAdd(
       name.trim(),
       qty,
-      origPrice,
-      sellPrice,
+      origUSD,
+      sellUSD,
       category,
-      originalPriceUSD ? parseFloat(originalPriceUSD) : undefined,
-      sellingPriceUSD ? parseFloat(sellingPriceUSD) : undefined,
       specifications.trim() || undefined
     );
 
@@ -85,6 +90,8 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
       { text: 'موافق', onPress: () => navigation.goBack() }
     ]);
   };
+
+  const categoryLabel = category === 'parts' ? 'قطعة غيار' : 'أداة إلكترونية';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -95,7 +102,8 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>إضافة منتج جديد</Text>
+            <Text style={styles.title}>إضافة {categoryLabel} جديدة</Text>
+            <Text style={styles.subtitle}>سعر الصرف: 1$ = {exchangeRate.toLocaleString('en-US')} ل.س</Text>
           </View>
 
           {/* Form */}
@@ -112,41 +120,6 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
               />
             </View>
 
-            {/* Category */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>الفئة *</Text>
-              <View style={styles.categoryButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.categoryButton,
-                    category === 'parts' && styles.categoryButtonActive,
-                  ]}
-                  onPress={() => setCategory('parts')}
-                >
-                  <Text style={[
-                    styles.categoryButtonText,
-                    category === 'parts' && styles.categoryButtonTextActive,
-                  ]}>
-                    قطع غيار
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.categoryButton,
-                    category === 'tools' && styles.categoryButtonActive,
-                  ]}
-                  onPress={() => setCategory('tools')}
-                >
-                  <Text style={[
-                    styles.categoryButtonText,
-                    category === 'tools' && styles.categoryButtonTextActive,
-                  ]}>
-                    أدوات
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
             {/* Quantity */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>الكمية *</Text>
@@ -160,67 +133,62 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
               />
             </View>
 
-            {/* Prices in SYP */}
-            <Text style={styles.sectionLabel}>الأسعار بالليرة السورية</Text>
+            {/* Prices in USD - Like Website */}
+            <Text style={styles.sectionLabel}>الأسعار بالدولار الأمريكي ($)</Text>
             
             <View style={styles.row}>
               <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={styles.label}>سعر التكلفة *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={originalPrice}
-                  onChangeText={setOriginalPrice}
-                  placeholder="سعر التكلفة"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                 
-                />
-              </View>
-
-              <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={styles.label}>سعر البيع *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={sellingPrice}
-                  onChangeText={setSellingPrice}
-                  placeholder="سعر البيع"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                 
-                />
-              </View>
-            </View>
-
-            {/* Prices in USD */}
-            <Text style={styles.sectionLabel}>الأسعار بالدولار (اختياري)</Text>
-            
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={styles.label}>سعر التكلفة ($)</Text>
+                <Text style={styles.label}>سعر التكلفة ($) *</Text>
                 <TextInput
                   style={styles.input}
                   value={originalPriceUSD}
                   onChangeText={setOriginalPriceUSD}
-                  placeholder="$"
+                  placeholder="$0.00"
                   placeholderTextColor="#999"
-                  keyboardType="numeric"
-                 
+                  keyboardType="decimal-pad"
                 />
               </View>
 
               <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={styles.label}>سعر البيع ($)</Text>
+                <Text style={styles.label}>سعر البيع ($) *</Text>
                 <TextInput
                   style={styles.input}
                   value={sellingPriceUSD}
                   onChangeText={setSellingPriceUSD}
-                  placeholder="$"
+                  placeholder="$0.00"
                   placeholderTextColor="#999"
-                  keyboardType="numeric"
-                 
+                  keyboardType="decimal-pad"
                 />
               </View>
             </View>
+
+            {/* Calculated SYP Prices */}
+            {(originalPriceUSD || sellingPriceUSD) && (
+              <View style={styles.calculatedSection}>
+                <Text style={styles.calculatedTitle}>الأسعار بالليرة السورية</Text>
+                <View style={styles.calculatedRow}>
+                  <View style={styles.calculatedCard}>
+                    <Text style={styles.calculatedLabel}>سعر التكلفة</Text>
+                    <Text style={styles.calculatedValue}>{originalPriceSYP.toLocaleString('en-US')} ل.س</Text>
+                  </View>
+                  <View style={styles.calculatedCard}>
+                    <Text style={styles.calculatedLabel}>سعر البيع</Text>
+                    <Text style={styles.calculatedValue}>{sellingPriceSYP.toLocaleString('en-US')} ل.س</Text>
+                  </View>
+                  {profitSYP !== null && (
+                    <View style={[styles.calculatedCard, profitSYP >= 0 ? styles.profitCard : styles.lossCard]}>
+                      <Text style={styles.calculatedLabel}>الربح</Text>
+                      <Text style={[styles.calculatedValue, profitSYP >= 0 ? styles.profitValue : styles.lossValue]}>
+                        {profitSYP.toLocaleString('en-US')} ل.س
+                      </Text>
+                      <Text style={[styles.calculatedValueSmall, profitSYP >= 0 ? styles.profitValue : styles.lossValue]}>
+                        ${profitUSD}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
 
             {/* Specifications */}
             <View style={styles.inputGroup}>
@@ -234,7 +202,6 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
-               
               />
             </View>
 
@@ -255,23 +222,29 @@ export default function AddProductScreen({ navigation, onAdd }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
   },
   keyboardView: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#1e293b',
     padding: 24,
     paddingTop: 40,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#818cf8',
+    textAlign: 'center',
+    marginTop: 8,
   },
   form: {
     padding: 16,
@@ -282,7 +255,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#334155',
     marginBottom: 8,
   },
   input: {
@@ -291,42 +264,17 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    color: '#333',
+    borderColor: '#e2e8f0',
+    color: '#1e293b',
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
-  categoryButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  categoryButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    alignItems: 'center',
-  },
-  categoryButtonActive: {
-    backgroundColor: '#1a73e8',
-    borderColor: '#1a73e8',
-  },
-  categoryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-  },
-  categoryButtonTextActive: {
-    color: '#fff',
-  },
   sectionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a73e8',
+    color: '#4f46e5',
     marginBottom: 12,
     marginTop: 8,
   },
@@ -337,13 +285,71 @@ const styles = StyleSheet.create({
   halfWidth: {
     flex: 1,
   },
+  calculatedSection: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  calculatedTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 8,
+  },
+  calculatedRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  calculatedCard: {
+    flex: 1,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+  },
+  calculatedLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  calculatedValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1e293b',
+  },
+  calculatedValueSmall: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 2,
+  },
+  profitCard: {
+    backgroundColor: '#dcfce7',
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  lossCard: {
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  profitValue: {
+    color: '#16a34a',
+  },
+  lossValue: {
+    color: '#dc2626',
+  },
   submitButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#4f46e5',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 16,
     marginBottom: 40,
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   submitButtonText: {
     fontSize: 18,

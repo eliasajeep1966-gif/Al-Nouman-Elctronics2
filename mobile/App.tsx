@@ -13,7 +13,7 @@ import { Product } from './src/types';
 export type RootStackParamList = {
   ProductList: undefined;
   ProductDetails: { product: Product };
-  AddProduct: undefined;
+  AddProduct: { category: 'parts' | 'tools' };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -21,18 +21,24 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function AppContent() {
   const { 
     products, 
+    logs,
+    losses,
     exchangeRate, 
     isLoaded, 
     addProduct, 
     deleteProduct, 
     sellProduct, 
-    addLoss 
+    addLoss,
+    setExchangeRate,
+    exportData,
+    importData,
+    clearAllData,
   } = useStore();
 
   if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1a73e8" />
+        <ActivityIndicator size="large" color="#4f46e5" />
         <Text style={styles.loadingText}>جاري التحميل...</Text>
       </View>
     );
@@ -42,7 +48,7 @@ function AppContent() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#1a73e8',
+          backgroundColor: '#1e293b',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -56,7 +62,21 @@ function AppContent() {
         options={{ headerShown: false }}
       >
         {(props) => (
-          <ProductListScreen {...props} products={products} />
+          <ProductListScreen 
+            {...props} 
+            products={products}
+            exchangeRate={exchangeRate}
+            logs={logs}
+            losses={losses}
+            onAdd={addProduct}
+            onSell={sellProduct}
+            onDelete={deleteProduct}
+            onLoss={addLoss}
+            onSetExchangeRate={setExchangeRate}
+            onClearAll={clearAllData}
+            onExportData={exportData}
+            onImportData={importData}
+          />
         )}
       </Stack.Screen>
 
@@ -88,7 +108,12 @@ function AppContent() {
         }}
       >
         {(props) => (
-          <AddProductScreen {...props} onAdd={addProduct} />
+          <AddProductScreen 
+            {...props} 
+            onAdd={addProduct}
+            exchangeRate={exchangeRate}
+            category={props.route.params?.category || 'parts'}
+          />
         )}
       </Stack.Screen>
     </Stack.Navigator>
@@ -98,7 +123,7 @@ function AppContent() {
 export default function App() {
   return (
     <NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor="#1a73e8" />
+      <StatusBar barStyle="light-content" backgroundColor="#1e293b" />
       <AppContent />
     </NavigationContainer>
   );
@@ -109,11 +134,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f1f5f9',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: '#64748b',
   },
 });

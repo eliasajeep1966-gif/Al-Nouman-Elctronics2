@@ -42,10 +42,19 @@ export default function ProductDetailsScreen({
   // الحصول على أحدث بيانات المنتج من الـ store
   const currentProduct = products.find(p => p.id === product.id) || product;
   
+  // حساب الربح
   const profit = currentProduct.sellingPrice - currentProduct.originalPrice;
-  const profitUSD = currentProduct.sellingPriceUSD && currentProduct.originalPriceUSD
-    ? currentProduct.sellingPriceUSD - currentProduct.originalPriceUSD
-    : null;
+  const profitPercent = currentProduct.originalPrice > 0
+    ? ((profit / currentProduct.originalPrice) * 100).toFixed(1)
+    : '0';
+
+  // حساب الأسعار بالدولار
+  const originalUSD = currentProduct.originalPriceUSD ?? (currentProduct.originalPrice / exchangeRate);
+  const sellingUSD = currentProduct.sellingPriceUSD ?? (currentProduct.sellingPrice / exchangeRate);
+  const profitUSD = sellingUSD - originalUSD;
+
+  const isOutOfStock = currentProduct.quantity === 0;
+  const isLowStock = currentProduct.quantity > 0 && currentProduct.quantity <= 3;
 
   const handleSell = () => {
     if (currentProduct.quantity <= 0) {
@@ -107,87 +116,98 @@ export default function ProductDetailsScreen({
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{currentProduct.name}</Text>
-          <View style={styles.categoryBadge}>
-            <Text style={styles.category}>
-              {currentProduct.category === 'parts' ? 'قطع غيار' : 'أدوات'}
+          <View style={styles.metaRow}>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.category}>
+                {currentProduct.category === 'parts' ? '⚙️ قطع غيار' : '🖥️ أدوات'}
+              </Text>
+            </View>
+            <Text style={styles.date}>{currentProduct.createdAt}</Text>
+          </View>
+        </View>
+
+        {/* Stock Badge */}
+        <View style={styles.stockSection}>
+          <View style={[
+            styles.stockBadge,
+            isOutOfStock && styles.stockOutOfStock,
+            isLowStock && styles.stockLowStock,
+            !isOutOfStock && !isLowStock && styles.stockAvailable,
+          ]}>
+            <Text style={[
+              styles.stockText,
+              isOutOfStock && styles.stockTextOut,
+              isLowStock && styles.stockTextLow,
+            ]}>
+              {isOutOfStock ? '🚫 نفد' : isLowStock ? `⚠️ ${currentProduct.quantity} قطعة` : `✅ ${currentProduct.quantity} قطعة`}
             </Text>
           </View>
         </View>
 
-        {/* Quantity */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>الكمية</Text>
-          <View style={styles.quantityCard}>
-            <Text style={styles.quantity}>{currentProduct.quantity}</Text>
-            <Text style={styles.quantityLabel}>وحدة متوفرة</Text>
-          </View>
-        </View>
-
-        {/* Prices */}
+        {/* Prices - Like Website */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>الأسعار</Text>
           
           <View style={styles.priceRow}>
             <View style={styles.priceCard}>
               <Text style={styles.priceLabel}>سعر التكلفة</Text>
-              <Text style={styles.priceValue}>
-                {currentProduct.originalPrice.toLocaleString()} ل.س
-              </Text>
-              {currentProduct.originalPriceUSD && (
-                <Text style={styles.priceValueUSD}>
-                  ${currentProduct.originalPriceUSD}
-                </Text>
-              )}
+              <Text style={styles.priceValueUSD}>${originalUSD.toFixed(2)}</Text>
+              <Text style={styles.priceValueSYP}>{currentProduct.originalPrice.toLocaleString('en-US')} ل.س</Text>
             </View>
             
             <View style={[styles.priceCard, styles.priceCardPrimary]}>
-              <Text style={styles.priceLabel}>سعر البيع</Text>
-              <Text style={styles.priceValueWhite}>
-                {currentProduct.sellingPrice.toLocaleString()} ل.س
-              </Text>
-              {currentProduct.sellingPriceUSD && (
-                <Text style={styles.priceValueUSDSmall}>
-                  ${currentProduct.sellingPriceUSD}
-                </Text>
-              )}
+              <Text style={styles.priceLabelWhite}>سعر البيع</Text>
+              <Text style={styles.priceValueUSDWhite}>${sellingUSD.toFixed(2)}</Text>
+              <Text style={styles.priceValueSYPWhite}>{currentProduct.sellingPrice.toLocaleString('en-US')} ل.س</Text>
             </View>
           </View>
 
-          {/* Profit */}
-          <View style={styles.profitCard}>
-            <Text style={styles.profitLabel}>الربح لكل وحدة</Text>
-            <Text style={styles.profitValue}>
-              {profit.toLocaleString()} ل.س
+          {/* Profit Card */}
+          <View style={[
+            styles.profitCard,
+            profit >= 0 ? styles.profitCardGreen : styles.profitCardRed
+          ]}>
+            <Text style={styles.profitLabel}>
+              {profit >= 0 ? '📈 الربح' : '📉 خسارة'}
             </Text>
-            {profitUSD !== null && (
-              <Text style={styles.profitValueUSD}>
-                ${profitUSD}
-              </Text>
-            )}
+            <View style={styles.profitRow}>
+              <View style={styles.profitItem}>
+                <Text style={[
+                  styles.profitValue,
+                  profit >= 0 ? styles.profitValueGreen : styles.profitValueRed
+                ]}>
+                  {profit >= 0 ? '+' : ''}${profitUSD.toFixed(2)}
+                </Text>
+                <Text style={styles.profitPercent}>{profitPercent}%</Text>
+              </View>
+              <View style={styles.profitItem}>
+                <Text style={[
+                  styles.profitValueSYP,
+                  profit >= 0 ? styles.profitValueGreen : styles.profitValueRed
+                ]}>
+                  {profit >= 0 ? '+' : ''}{profit.toLocaleString('en-US')} ل.س
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
         {/* Specifications */}
         {currentProduct.specifications && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>المواصفات</Text>
+            <Text style={styles.sectionTitle}>📝 المواصفات</Text>
             <View style={styles.specsCard}>
               <Text style={styles.specsText}>{currentProduct.specifications}</Text>
             </View>
           </View>
         )}
 
-        {/* Info */}
+        {/* Exchange Rate Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>معلومات إضافية</Text>
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>تاريخ الإضافة:</Text>
-              <Text style={styles.infoValue}>{currentProduct.createdAt}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>سعر الصرف:</Text>
-              <Text style={styles.infoValue}>{exchangeRate.toLocaleString()} ل.س/$</Text>
+              <Text style={styles.infoLabel}>💱 سعر الصرف:</Text>
+              <Text style={styles.infoValue}>{exchangeRate.toLocaleString('en-US')} ل.س/$</Text>
             </View>
           </View>
         </View>
@@ -197,6 +217,7 @@ export default function ProductDetailsScreen({
           <TouchableOpacity
             style={[styles.actionButton, styles.sellButton]}
             onPress={handleSell}
+            disabled={isOutOfStock}
           >
             <Text style={styles.actionButtonText}>💰 بيع</Text>
           </TouchableOpacity>
@@ -204,6 +225,7 @@ export default function ProductDetailsScreen({
           <TouchableOpacity
             style={[styles.actionButton, styles.lossButton]}
             onPress={handleLoss}
+            disabled={isOutOfStock}
           >
             <Text style={styles.actionButtonText}>📉 خسارة</Text>
           </TouchableOpacity>
@@ -223,46 +245,52 @@ export default function ProductDetailsScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
   },
   header: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#1e293b',
     padding: 24,
     paddingTop: 40,
     alignItems: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   name: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 12,
+  },
   categoryBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
-    marginTop: 8,
   },
   category: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '500',
   },
-  section: {
-    padding: 16,
+  date: {
+    color: '#94a3b8',
+    fontSize: 12,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 12,
+  stockSection: {
+    paddingHorizontal: 16,
+    marginTop: -20,
   },
-  quantityCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+  stockBadge: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -270,15 +298,39 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  quantity: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#1a73e8',
+  stockAvailable: {
+    backgroundColor: '#dcfce7',
+    borderWidth: 2,
+    borderColor: '#86efac',
   },
-  quantityLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+  stockLowStock: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 2,
+    borderColor: '#fcd34d',
+  },
+  stockOutOfStock: {
+    backgroundColor: '#fee2e2',
+    borderWidth: 2,
+    borderColor: '#fca5a5',
+  },
+  stockText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  stockTextOut: {
+    color: '#dc2626',
+  },
+  stockTextLow: {
+    color: '#d97706',
+  },
+  section: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 12,
   },
   priceRow: {
     flexDirection: 'row',
@@ -287,105 +339,142 @@ const styles = StyleSheet.create({
   priceCard: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   priceCardPrimary: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#4f46e5',
+    borderColor: '#4f46e5',
   },
   priceLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#64748b',
     marginBottom: 4,
   },
-  priceValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+  priceLabelWhite: {
+    fontSize: 12,
+    color: '#c7d2fe',
+    marginBottom: 4,
   },
-  priceValueWhite: {
-    fontSize: 18,
+  priceValueUSD: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+  },
+  priceValueUSDWhite: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
   },
-  priceValueUSD: {
-    fontSize: 14,
-    color: '#4caf50',
-    marginTop: 4,
+  priceValueSYP: {
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 2,
   },
-  priceValueUSDSmall: {
-    fontSize: 14,
-    color: '#e3f2fd',
-    marginTop: 4,
+  priceValueSYPWhite: {
+    fontSize: 13,
+    color: '#c7d2fe',
+    marginTop: 2,
   },
   profitCard: {
-    backgroundColor: '#e8f5e9',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    alignItems: 'center',
     marginTop: 12,
+  },
+  profitCardGreen: {
+    backgroundColor: '#dcfce7',
     borderWidth: 1,
-    borderColor: '#4caf50',
+    borderColor: '#86efac',
+  },
+  profitCardRed: {
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
   },
   profitLabel: {
     fontSize: 14,
-    color: '#666',
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  profitRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  profitItem: {
+    alignItems: 'center',
   },
   profitValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#4caf50',
-    marginTop: 4,
   },
-  profitValueUSD: {
-    fontSize: 16,
-    color: '#2e7d32',
+  profitValueGreen: {
+    color: '#16a34a',
+  },
+  profitValueRed: {
+    color: '#dc2626',
+  },
+  profitPercent: {
+    fontSize: 13,
+    color: '#64748b',
     marginTop: 2,
+  },
+  profitValueSYP: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 4,
   },
   specsCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   specsText: {
     fontSize: 14,
-    color: '#333',
+    color: '#334155',
     lineHeight: 22,
   },
   infoCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
   },
   infoLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#64748b',
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: '600',
+    color: '#1e293b',
   },
   actions: {
     padding: 16,
@@ -394,17 +483,22 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sellButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#10b981',
   },
   lossButton: {
-    backgroundColor: '#ff9800',
+    backgroundColor: '#f59e0b',
   },
   deleteButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: '#ef4444',
   },
   actionButtonText: {
     fontSize: 18,
