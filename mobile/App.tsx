@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar, ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ProductListScreen from './src/screens/ProductListScreen';
 import ProductDetailsScreen from './src/screens/ProductDetailsScreen';
@@ -9,7 +10,8 @@ import AddProductScreen from './src/screens/AddProductScreen';
 import { useStore } from './src/store/useStore';
 import { Product } from './src/types';
 
-// Define navigation types
+const DARK_MODE_KEY = '@noman_dark_mode';
+
 export type RootStackParamList = {
   ProductList: undefined;
   ProductDetails: { product: Product };
@@ -19,6 +21,8 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppContent() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const { 
     products, 
     logs,
@@ -35,6 +39,19 @@ function AppContent() {
     clearAllData,
   } = useStore();
 
+  // Load dark mode preference
+  useEffect(() => {
+    AsyncStorage.getItem(DARK_MODE_KEY).then(val => {
+      if (val !== null) setIsDarkMode(JSON.parse(val));
+    });
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newValue = !isDarkMode;
+    setIsDarkMode(newValue);
+    AsyncStorage.setItem(DARK_MODE_KEY, JSON.stringify(newValue));
+  };
+
   if (!isLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -48,7 +65,7 @@ function AppContent() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#1e293b',
+          backgroundColor: '#312e81',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -68,6 +85,8 @@ function AppContent() {
             exchangeRate={exchangeRate}
             logs={logs}
             losses={losses}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={toggleDarkMode}
             onAdd={addProduct}
             onSell={sellProduct}
             onDelete={deleteProduct}
@@ -123,7 +142,7 @@ function AppContent() {
 export default function App() {
   return (
     <NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor="#1e293b" />
+      <StatusBar barStyle="light-content" backgroundColor="#312e81" />
       <AppContent />
     </NavigationContainer>
   );
