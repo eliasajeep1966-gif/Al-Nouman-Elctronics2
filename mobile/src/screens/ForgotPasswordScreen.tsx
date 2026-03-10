@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen({
       const { error } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
         {
-          redirectTo: 'elektronik-nouman://reset-password',
+          redirectTo: 'electronics-store://reset-password',
         }
       );
 

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StatusBar, ActivityIndicator, View, Text, StyleSheet, I18nManager } from 'react-native';
+import { StatusBar, ActivityIndicator, View, Text, StyleSheet, I18nManager, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 
 import ProductListScreen from './src/screens/ProductListScreen';
 import ProductDetailsScreen from './src/screens/ProductDetailsScreen';
@@ -11,6 +12,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import { useStore } from './src/store/useStore';
+import { supabase } from './src/lib/supabase';
 import { Product } from './src/types';
 
 const DARK_MODE_KEY = '@noman_dark_mode';
@@ -68,6 +70,61 @@ function AppContent() {
       }
     };
     checkAuth();
+  }, []);
+
+  // Handle deep links for password reset and email confirmation
+  useEffect(() => {
+    const handleDeepLink = async (event: { url: string }) => {
+      const { url } = event;
+      console.log('Deep link received:', url);
+      
+      // Check if it's a password reset or email confirmation link
+      if (url.includes('reset-password') || url.includes('confirm-email')) {
+        // Supabase uses hash (#) for auth tokens
+        if (url.includes('#access_token')) {
+          try {
+            // Extract tokens from URL hash
+            const hashPart = url.split('#')[1];
+            const params = new URLSearchParams(hashPart);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+            
+            console.log('Extracted tokens:', { accessToken: !!accessToken, refreshToken: !!refreshToken });
+            
+            if (accessToken && refreshToken) {
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              
+              if (error) {
+                console.error('Error setting session:', error);
+              } else if (data.session) {
+                console.log('Session set successfully');
+                setUserId(data.session.user.id);
+                await AsyncStorage.setItem(USER_ID_KEY, data.session.user.id);
+              }
+            }
+          } catch (error) {
+            console.error('Error handling deep link:', error);
+          }
+        }
+      }
+    };
+
+    // Get initial URL
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
+
+    // Listen for deep links
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   // Load dark mode preference

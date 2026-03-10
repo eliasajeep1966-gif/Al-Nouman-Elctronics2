@@ -58,6 +58,9 @@ export default function SignUpScreen({
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
+        options: {
+          emailRedirectTo: 'electronics-store://confirm-email',
+        },
       });
 
       if (error) {
