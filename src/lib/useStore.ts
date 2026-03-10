@@ -50,7 +50,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 // مزامنة البيانات مع Supabase
 async function syncProductsToSupabase(products: Product[]) {
   try {
-    await supabase.from(TABLES.PRODUCTS).upsert(
+    const { data, error } = await supabase.from(TABLES.PRODUCTS).upsert(
       products.map(p => ({
         id: p.id,
         name: p.name,
@@ -63,7 +63,13 @@ async function syncProductsToSupabase(products: Product[]) {
         specifications: p.specifications || '',
         created_at: p.createdAt,
       }))
-    );
+    ).select();
+    
+    if (error) {
+      console.error('Supabase products upsert error:', error);
+    } else {
+      console.log('Products synced to Supabase:', data?.length || 0, 'items');
+    }
   } catch (e) {
     console.error('Error syncing products:', e);
   }
@@ -71,7 +77,7 @@ async function syncProductsToSupabase(products: Product[]) {
 
 async function syncLogsToSupabase(logs: LogEntry[]) {
   try {
-    await supabase.from(TABLES.LOGS).upsert(
+    const { data, error } = await supabase.from(TABLES.LOGS).upsert(
       logs.map(l => ({
         id: l.id,
         product_id: l.productId || '',
@@ -89,7 +95,13 @@ async function syncLogsToSupabase(logs: LogEntry[]) {
         category: l.category,
         timestamp: l.timestamp,
       }))
-    );
+    ).select();
+    
+    if (error) {
+      console.error('Supabase logs upsert error:', error);
+    } else {
+      console.log('Logs synced to Supabase:', data?.length || 0, 'items');
+    }
   } catch (e) {
     console.error('Error syncing logs:', e);
   }
@@ -97,7 +109,7 @@ async function syncLogsToSupabase(logs: LogEntry[]) {
 
 async function syncLossesToSupabase(losses: LossEntry[]) {
   try {
-    await supabase.from(TABLES.LOSSES).upsert(
+    const { data, error } = await supabase.from(TABLES.LOSSES).upsert(
       losses.map(l => ({
         id: l.id,
         product_name: l.productName,
@@ -107,7 +119,13 @@ async function syncLossesToSupabase(losses: LossEntry[]) {
         timestamp: l.timestamp,
         month: l.month,
       }))
-    );
+    ).select();
+    
+    if (error) {
+      console.error('Supabase losses upsert error:', error);
+    } else {
+      console.log('Losses synced to Supabase:', data?.length || 0, 'items');
+    }
   } catch (e) {
     console.error('Error syncing losses:', e);
   }
