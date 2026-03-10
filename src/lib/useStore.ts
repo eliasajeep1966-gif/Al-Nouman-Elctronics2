@@ -231,7 +231,9 @@ export function useStore() {
   const setExchangeRate = useCallback((rate: number) => {
     setExchangeRateState(rate);
     localStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(rate));
-    supabase.from(TABLES.SETTINGS).upsert({ id: 'app_settings', exchange_rate: rate }).catch(console.error);
+    supabase.from(TABLES.SETTINGS).upsert({ id: 'app_settings', exchange_rate: rate }).then(({ error }) => {
+      if (error) console.error(error);
+    });
   }, []);
 
   const saveProducts = useCallback((newProducts: Product[]) => {

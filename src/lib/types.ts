@@ -23,8 +23,12 @@ export interface LogEntry {
   quantity?: number;
   originalPrice?: number;
   sellingPrice?: number;
+  originalPriceUSD?: number;
+  sellingPriceUSD?: number;
   profit?: number;
+  profitUSD?: number;
   lossAmount?: number;  // مبلغ الخسارة
+  lossAmountUSD?: number;
   category: ProductCategory;
   timestamp: string;
 }
@@ -33,6 +37,7 @@ export interface LossEntry {
   id: string;
   productName: string;
   amount: number;
+  amountUSD?: number;
   category: ProductCategory;
   timestamp: string;
   month: string; // YYYY-MM
