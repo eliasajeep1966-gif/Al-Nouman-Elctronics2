@@ -35,7 +35,7 @@ function getCurrentMonth(): string {
 }
 
 // Sync local data to Supabase
-async function syncProductsToSupabase(products: Product[]) {
+async function syncProductsToSupabase(products: Product[], userId?: string) {
   try {
     const { data, error } = await supabase.from(TABLES.PRODUCTS).upsert(
       products.map(p => ({
@@ -48,6 +48,7 @@ async function syncProductsToSupabase(products: Product[]) {
         selling_price_usd: p.sellingPriceUSD,
         category: p.category,
         specifications: p.specifications,
+        user_id: userId || p.userId,
         created_at: p.createdAt,
       }))
     ).select();
@@ -138,6 +139,7 @@ async function loadFromSupabase() {
       sellingPriceUSD: p.selling_price_usd,
       category: p.category as ProductCategory,
       specifications: p.specifications,
+      userId: p.user_id,
       createdAt: p.created_at,
     }));
 
@@ -247,14 +249,8 @@ export function useStore() {
   }, []);
 
   // دالة إضافة منتج - USD كمدخل رئيسي
-  const addProduct = useCallback((
-    name: string,
-    quantity: number,
-    originalPriceUSD: number,
-    sellingPriceUSD: number,
-    category: ProductCategory,
-    specifications?: string
-  ) => {
+  const addProduct = useCallback(// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (name: string, quantity: number, originalPriceUSD: number, sellingPriceUSD: number, category: ProductCategory, specifications?: string, _userId?: string) => {
     const originalPriceSYP = Math.round(originalPriceUSD * exchangeRate);
     const sellingPriceSYP = Math.round(sellingPriceUSD * exchangeRate);
 
@@ -268,6 +264,7 @@ export function useStore() {
       sellingPriceUSD,
       category,
       specifications,
+      userId: _userId,
       createdAt: formatTimestamp(),
     };
 

@@ -12,6 +12,7 @@ export interface Product {
   sellingPriceUSD?: number;  // بالدولار
   category: ProductCategory;
   specifications?: string; // مواصفات المنتج (اختياري)
+  userId?: string;         // معرف المستخدم
   createdAt: string;
 }
 

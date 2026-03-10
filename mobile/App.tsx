@@ -7,10 +7,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProductListScreen from './src/screens/ProductListScreen';
 import ProductDetailsScreen from './src/screens/ProductDetailsScreen';
 import AddProductScreen from './src/screens/AddProductScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import { useStore } from './src/store/useStore';
 import { Product } from './src/types';
 
 const DARK_MODE_KEY = '@noman_dark_mode';
+const USER_ID_KEY = '@noman_user_id';
 
 // Enable RTL for Arabic
 if (!I18nManager.isRTL) {
@@ -18,6 +22,9 @@ if (!I18nManager.isRTL) {
 }
 
 export type RootStackParamList = {
+  Login: undefined;
+  SignUp: undefined;
+  ForgotPassword: undefined;
   ProductList: undefined;
   ProductDetails: { product: Product };
   AddProduct: { category: 'parts' | 'tools' };
@@ -27,6 +34,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppContent() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const { 
     products, 
@@ -44,6 +53,23 @@ function AppContent() {
     clearAllData,
   } = useStore();
 
+  // Check for existing session
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem(USER_ID_KEY);
+        if (storedUserId) {
+          setUserId(storedUserId);
+        }
+      } catch (e) {
+        console.error('Error checking auth:', e);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
   // Load dark mode preference
   useEffect(() => {
     AsyncStorage.getItem(DARK_MODE_KEY).then(val => {
@@ -57,7 +83,18 @@ function AppContent() {
     AsyncStorage.setItem(DARK_MODE_KEY, JSON.stringify(newValue));
   };
 
-  if (!isLoaded) {
+  const handleLoginSuccess = async (newUserId: string) => {
+    setUserId(newUserId);
+    await AsyncStorage.setItem(USER_ID_KEY, newUserId);
+  };
+
+  const handleLogout = async () => {
+    setUserId(null);
+    await AsyncStorage.removeItem(USER_ID_KEY);
+  };
+
+  // Show loading while checking auth
+  if (isAuthLoading || !isLoaded) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4f46e5" />
@@ -66,6 +103,45 @@ function AppContent() {
     );
   }
 
+  // If not logged in, show auth screens
+  if (!userId) {
+    return (
+      <NavigationContainer>
+        <StatusBar barStyle="light-content" backgroundColor="#1e1b4b" />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login">
+            {(props) => (
+              <LoginScreen
+                {...props}
+                onLoginSuccess={handleLoginSuccess}
+                onNavigateToSignUp={() => props.navigation.navigate('SignUp')}
+                onNavigateToForgotPassword={() => props.navigation.navigate('ForgotPassword')}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="SignUp">
+            {(props) => (
+              <SignUpScreen
+                {...props}
+                onSignUpSuccess={handleLoginSuccess}
+                onNavigateToLogin={() => props.navigation.navigate('Login')}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="ForgotPassword">
+            {(props) => (
+              <ForgotPasswordScreen
+                {...props}
+                onNavigateToLogin={() => props.navigation.navigate('Login')}
+              />
+            )}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
+  // User is logged in - show main app
   return (
     <Stack.Navigator
       screenOptions={{
@@ -100,6 +176,8 @@ function AppContent() {
             onClearAll={clearAllData}
             onExportData={exportData}
             onImportData={importData}
+            userId={userId}
+            onLogout={handleLogout}
           />
         )}
       </Stack.Screen>
@@ -139,6 +217,7 @@ function AppContent() {
             exchangeRate={exchangeRate}
             category={props.route.params?.category || 'parts'}
             isDarkMode={isDarkMode}
+            userId={userId}
           />
         )}
       </Stack.Screen>

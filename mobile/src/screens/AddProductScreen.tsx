@@ -33,9 +33,10 @@ type Props = {
   exchangeRate: number;
   category: ProductCategory;
   isDarkMode: boolean;
+  userId: string;
 };
 
-export default function AddProductScreen({ navigation, onAdd, exchangeRate, category, isDarkMode }: Props) {
+export default function AddProductScreen({ navigation, onAdd, exchangeRate, category, isDarkMode, userId }: Props) {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [originalPriceUSD, setOriginalPriceUSD] = useState('');

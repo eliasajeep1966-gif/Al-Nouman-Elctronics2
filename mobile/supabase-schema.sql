@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS products (
   selling_price_usd REAL DEFAULT 0,
   category TEXT NOT NULL,
   specifications TEXT,
+  user_id TEXT, -- معرف المستخدم من Supabase Auth
   created_at TEXT NOT NULL
 );
 
@@ -31,7 +32,8 @@ CREATE TABLE IF NOT EXISTS logs (
   loss_amount INTEGER DEFAULT 0,
   loss_amount_usd REAL DEFAULT 0,
   category TEXT NOT NULL,
-  timestamp TEXT NOT NULL
+  timestamp TEXT NOT NULL,
+  user_id TEXT -- معرف المستخدم
 );
 
 -- 3. Create losses table
@@ -42,7 +44,8 @@ CREATE TABLE IF NOT EXISTS losses (
   amount_usd REAL DEFAULT 0,
   category TEXT NOT NULL,
   timestamp TEXT NOT NULL,
-  month TEXT NOT NULL
+  month TEXT NOT NULL,
+  user_id TEXT -- معرف المستخدم
 );
 
 -- 4. Create settings table (for exchange rate, etc.)
@@ -69,3 +72,8 @@ CREATE POLICY "Allow public access to settings" ON settings FOR ALL USING (true)
 INSERT INTO settings (id, exchange_rate, is_dark_mode) 
 VALUES ('app_settings', 14000, 0)
 ON CONFLICT (id) DO NOTHING;
+
+-- 8. Add user_id column if it doesn't exist (for existing tables)
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS user_id TEXT;
+-- ALTER TABLE logs ADD COLUMN IF NOT EXISTS user_id TEXT;
+-- ALTER TABLE losses ADD COLUMN IF NOT EXISTS user_id TEXT;

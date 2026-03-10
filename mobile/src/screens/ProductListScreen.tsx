@@ -39,6 +39,8 @@ type Props = {
   onClearAll: () => void;
   onExportData: () => string;
   onImportData: (json: string) => boolean;
+  userId: string;
+  onLogout: () => void;
 };
 
 const tabs: { id: TabId; label: string; icon: string }[] = [
@@ -97,6 +99,8 @@ export default function ProductListScreen({
   onSetExchangeRate,
   onClearAll,
   onExportData,
+  userId,
+  onLogout,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
   const [search, setSearch] = useState('');
@@ -530,6 +534,16 @@ export default function ProductListScreen({
               ]);
             }}>
               <Text style={[styles.settingBtnText, { color: '#dc2626' }]}>🗑️ حذف كل البيانات</Text>
+            </TouchableOpacity>
+
+            {/* Logout */}
+            <TouchableOpacity style={[styles.settingBtn, { backgroundColor: '#fef3c7' }]} onPress={() => {
+              Alert.alert('تسجيل خروج', 'هل أنت متأكد من تسجيل الخروج؟', [
+                { text: 'إلغاء', style: 'cancel' },
+                { text: 'خروج', style: 'destructive', onPress: () => { onLogout(); } },
+              ]);
+            }}>
+              <Text style={[styles.settingBtnText, { color: '#d97706' }]}>🚪 تسجيل خروج</Text>
             </TouchableOpacity>
           </View>
         </View>
