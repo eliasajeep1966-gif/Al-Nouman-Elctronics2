@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/useStore';
+import { supabase } from '@/lib/supabase';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -244,6 +245,18 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             )}
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.reload();
+            }}
+            className="w-full flex items-center justify-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+          >
+            <span className="text-xl">🚪</span>
+            <span className="font-medium">تسجيل الخروج</span>
+          </button>
         </div>
       </div>
     </div>
