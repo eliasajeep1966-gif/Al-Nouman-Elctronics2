@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar, ActivityIndicator, View, Text, StyleSheet, I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -106,7 +106,7 @@ function AppContent() {
   // If not logged in, show auth screens
   if (!userId) {
     return (
-      <NavigationContainer>
+      <NavigationIndependentTree>
         <StatusBar barStyle="light-content" backgroundColor="#1e1b4b" />
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login">
@@ -137,13 +137,14 @@ function AppContent() {
             )}
           </Stack.Screen>
         </Stack.Navigator>
-      </NavigationContainer>
+      </NavigationIndependentTree>
     );
   }
 
   // User is logged in - show main app
   return (
-    <Stack.Navigator
+    <NavigationIndependentTree>
+      <Stack.Navigator
       screenOptions={{
         headerStyle: {
           backgroundColor: '#312e81',
@@ -222,6 +223,7 @@ function AppContent() {
         )}
       </Stack.Screen>
     </Stack.Navigator>
+    </NavigationIndependentTree>
   );
 }
 
