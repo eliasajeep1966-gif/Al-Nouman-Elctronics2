@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StatusBar, ActivityIndicator, View, Text, StyleSheet, I18nManager, Linking } from 'react-native';
+import { StatusBar, ActivityIndicator, View, Text, StyleSheet, I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
