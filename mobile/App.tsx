@@ -10,7 +10,6 @@ import ProductDetailsScreen from './src/screens/ProductDetailsScreen';
 import AddProductScreen from './src/screens/AddProductScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
-import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import { useStore } from './src/store/useStore';
 import { supabase } from './src/lib/supabase';
 import { Product } from './src/types';
@@ -26,7 +25,6 @@ if (!I18nManager.isRTL) {
 export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
-  ForgotPassword: undefined;
   ProductList: undefined;
   ProductDetails: { product: Product };
   AddProduct: { category: 'parts' | 'tools' };
@@ -172,7 +170,6 @@ function AppContent() {
                 {...props}
                 onLoginSuccess={handleLoginSuccess}
                 onNavigateToSignUp={() => props.navigation.navigate('SignUp')}
-                onNavigateToForgotPassword={() => props.navigation.navigate('ForgotPassword')}
               />
             )}
           </Stack.Screen>
@@ -181,14 +178,6 @@ function AppContent() {
               <SignUpScreen
                 {...props}
                 onSignUpSuccess={handleLoginSuccess}
-                onNavigateToLogin={() => props.navigation.navigate('Login')}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="ForgotPassword">
-            {(props) => (
-              <ForgotPasswordScreen
-                {...props}
                 onNavigateToLogin={() => props.navigation.navigate('Login')}
               />
             )}

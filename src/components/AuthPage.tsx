@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-type AuthMode = 'login' | 'signup' | 'forgot';
+type AuthMode = 'login' | 'signup';
 
 const INVITE_CODE = '2001';
 
@@ -93,24 +93,8 @@ export default function AuthPage() {
   };
 
   const handleForgotPassword = async () => {
-    if (!email.trim()) {
-      setMessage({ type: 'error', text: 'الرجاء إدخال البريد الإلكتروني' });
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.trim()
-    );
-
-    if (error) {
-      setMessage({ type: 'error', text: error.message });
-    } else {
-      setMessage({ type: 'success', text: 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني' });
-    }
-    setIsLoading(false);
+    // Password reset disabled due to email rate limiting
+    setMessage({ type: 'error', text: 'الرجاء التواصل مع المالك لإعادة تعيين كلمة المرور' });
   };
 
   const resetForm = () => {
@@ -162,187 +146,151 @@ export default function AuthPage() {
           <h2 className="text-2xl font-bold text-white text-center mb-6">
             {mode === 'login' && 'تسجيل الدخول'}
             {mode === 'signup' && 'إنشاء حساب جديد'}
-            {mode === 'forgot' && 'نسيت كلمة المرور'}
           </h2>
 
-          {/* Forgot Password Success Message */}
-          {mode === 'forgot' && message?.type === 'success' ? (
-            <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl text-white">✓</span>
-              </div>
-              <p className="text-white text-lg mb-6">{message.text}</p>
-              <button
-                onClick={() => switchMode('login')}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl transition-all"
-              >
-                العودة لتسجيل الدخول
-              </button>
+          {/* Email Input */}
+          <div className="mb-4">
+            <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
+              البريد الإلكتروني
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@email.com"
+              className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+              dir="ltr"
+            />
+          </div>
+
+          {/* Password Input (Login & Signup) */}
+          {(mode === 'login' || mode === 'signup') && (
+            <div className="mb-4">
+              <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
+                {mode === 'login' ? 'كلمة المرور' : 'كلمة المرور'}
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={mode === 'login' ? 'أدخل كلمة المرور' : 'أدخل كلمة المرور'}
+                className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                dir="ltr"
+              />
             </div>
-          ) : (
-            <>
-              {/* Email Input */}
-              <div className="mb-4">
-                <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
-                  البريد الإلكتروني
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
-                  className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
-                  dir="ltr"
-                />
-              </div>
-
-              {/* Password Input (Login & Signup) */}
-              {(mode === 'login' || mode === 'signup') && (
-                <div className="mb-4">
-                  <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
-                    {mode === 'login' ? 'كلمة المرور' : 'كلمة المرور'}
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={mode === 'login' ? 'أدخل كلمة المرور' : 'أدخل كلمة المرور'}
-                    className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
-                    dir="ltr"
-                  />
-                </div>
-              )}
-
-              {/* Confirm Password Input (Signup only) */}
-              {mode === 'signup' && (
-                <div className="mb-4">
-                  <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
-                    تأكيد كلمة المرور
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="أدخل كلمة المرور مرة أخرى"
-                    className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
-                    dir="ltr"
-                  />
-                </div>
-              )}
-
-              {/* Invite Code Input (Signup only) */}
-              {mode === 'signup' && (
-                <div className="mb-4">
-                  <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
-                    رمز الدعوة
-                  </label>
-                  <input
-                    type="text"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value)}
-                    placeholder="أدخل رمز الدعوة"
-                    className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
-                    dir="ltr"
-                  />
-                </div>
-              )}
-
-              {/* Forgot Password Link (Login only) */}
-              {mode === 'login' && (
-                <div className="text-left mb-4">
-                  <button
-                    type="button"
-                    onClick={() => switchMode('forgot')}
-                    className="text-indigo-300 hover:text-indigo-200 text-sm transition-colors"
-                  >
-                    نسيت كلمة المرور؟
-                  </button>
-                </div>
-              )}
-
-              {/* Error/Success Message */}
-              {message && (
-                <div className={`mb-4 p-3 rounded-xl text-center text-sm ${
-                  message.type === 'error' 
-                    ? 'bg-red-500/20 text-red-200 border border-red-500/30' 
-                    : 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
-                }`}>
-                  {message.text}
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                onClick={
-                  mode === 'login' ? handleLogin :
-                  mode === 'signup' ? handleSignUp :
-                  handleForgotPassword
-                }
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
-              >
-                {isLoading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    جاري التحميل...
-                  </span>
-                ) : (
-                  <>
-                    {mode === 'login' && 'دخول'}
-                    {mode === 'signup' && 'إنشاء حساب'}
-                    {mode === 'forgot' && 'إرسال رابط إعادة التعيين'}
-                  </>
-                )}
-              </button>
-
-              {/* Divider */}
-              <div className="flex items-center my-6">
-                <div className="flex-1 h-px bg-white/30"></div>
-                <span className="px-4 text-white/60 text-sm">أو</span>
-                <div className="flex-1 h-px bg-white/30"></div>
-              </div>
-
-              {/* Switch Mode Links */}
-              <div className="text-center">
-                {mode === 'login' && (
-                  <p className="text-indigo-200">
-                    ليس لديك حساب؟{' '}
-                    <button
-                      onClick={() => switchMode('signup')}
-                      className="text-indigo-300 font-bold hover:text-white transition-colors"
-                    >
-                      إنشاء حساب جديد
-                    </button>
-                  </p>
-                )}
-                {mode === 'signup' && (
-                  <p className="text-indigo-200">
-                    لديك حساب بالفعل؟{' '}
-                    <button
-                      onClick={() => switchMode('login')}
-                      className="text-indigo-300 font-bold hover:text-white transition-colors"
-                    >
-                      تسجيل دخول
-                    </button>
-                  </p>
-                )}
-                {mode === 'forgot' && (
-                  <p className="text-indigo-200">
-                    تذكرت كلمة المرور؟{' '}
-                    <button
-                      onClick={() => switchMode('login')}
-                      className="text-indigo-300 font-bold hover:text-white transition-colors"
-                    >
-                      تسجيل دخول
-                    </button>
-                  </p>
-                )}
-              </div>
-            </>
           )}
+
+          {/* Confirm Password Input (Signup only) */}
+          {mode === 'signup' && (
+            <div className="mb-4">
+              <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
+                تأكيد كلمة المرور
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="أدخل كلمة المرور مرة أخرى"
+                className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                dir="ltr"
+              />
+            </div>
+          )}
+
+          {/* Invite Code Input (Signup only) */}
+          {mode === 'signup' && (
+            <div className="mb-4">
+              <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
+                رمز الدعوة
+              </label>
+              <input
+                type="text"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="أدخل رمز الدعوة"
+                className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                dir="ltr"
+              />
+            </div>
+          )}
+
+          {/* Forgot Password Link - Disabled */}
+          {mode === 'login' && (
+            <div className="text-left mb-4">
+              <span className="text-indigo-300 text-sm">
+                نسيت كلمة المرور؟ تواصل مع المالك
+              </span>
+            </div>
+          )}
+
+          {/* Error/Success Message */}
+          {message && (
+            <div className={`mb-4 p-3 rounded-xl text-center text-sm ${
+              message.type === 'error' 
+                ? 'bg-red-500/20 text-red-200 border border-red-500/30' 
+                : 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
+            }`}>
+              {message.text}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            onClick={
+              mode === 'login' ? handleLogin :
+              handleSignUp
+            }
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
+          >
+            {isLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                جاري التحميل...
+              </span>
+            ) : (
+              <>
+                {mode === 'login' && 'دخول'}
+                {mode === 'signup' && 'إنشاء حساب'}
+              </>
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 h-px bg-white/30"></div>
+            <span className="px-4 text-white/60 text-sm">أو</span>
+            <div className="flex-1 h-px bg-white/30"></div>
+          </div>
+
+          {/* Switch Mode Links */}
+          <div className="text-center">
+            {mode === 'login' && (
+              <p className="text-indigo-200">
+                ليس لديك حساب؟{' '}
+                <button
+                  onClick={() => switchMode('signup')}
+                  className="text-indigo-300 font-bold hover:text-white transition-colors"
+                >
+                  إنشاء حساب جديد
+                </button>
+              </p>
+            )}
+            {mode === 'signup' && (
+              <p className="text-indigo-200">
+                لديك حساب بالفعل؟{' '}
+                <button
+                  onClick={() => switchMode('login')}
+                  className="text-indigo-300 font-bold hover:text-white transition-colors"
+                >
+                  تسجيل دخول
+                </button>
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

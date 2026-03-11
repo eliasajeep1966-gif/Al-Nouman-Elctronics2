@@ -16,13 +16,11 @@ import { supabase } from '../lib/supabase';
 interface LoginScreenProps {
   onLoginSuccess: (userId: string) => void;
   onNavigateToSignUp: () => void;
-  onNavigateToForgotPassword: () => void;
 }
 
 export default function LoginScreen({
   onLoginSuccess,
   onNavigateToSignUp,
-  onNavigateToForgotPassword,
 }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -119,12 +117,7 @@ export default function LoginScreen({
               />
             </View>
 
-            <TouchableOpacity
-              style={styles.forgotPassword}
-              onPress={onNavigateToForgotPassword}
-            >
-              <Text style={styles.forgotPasswordText}>نسيت كلمة المرور؟</Text>
-            </TouchableOpacity>
+            <Text style={styles.forgotPasswordText}>نسيت كلمة المرور؟ تواصل مع المالك</Text>
 
             <TouchableOpacity
               style={[styles.button, isLoading && styles.buttonDisabled]}
