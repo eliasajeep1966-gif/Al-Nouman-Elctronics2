@@ -96,7 +96,6 @@ export default function LoginScreen({
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
-                autoCapitalize="none"
                 autoCorrect={false}
                 textAlign="right"
                 keyboardType="email-address"

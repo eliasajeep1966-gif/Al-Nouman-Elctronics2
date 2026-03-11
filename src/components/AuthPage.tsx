@@ -42,7 +42,7 @@ export default function AuthPage() {
     });
 
     if (error) {
-      setMessage({ type: 'error', text: error.message });
+      setMessage({ type: 'error', text: error?.message || 'حدث خطأ' });
     } else if (data.user) {
       window.location.reload();
     }
@@ -53,47 +53,6 @@ export default function AuthPage() {
     // Signup disabled - contact owner to create account
     setMessage({ type: 'error', text: 'الرجاء التواصل مع المالك لإنشاء حساب' });
     return;
-
-    if (!username.trim() || !password.trim() || !confirmPassword.trim() || !inviteCode.trim()) {
-      setMessage({ type: 'error', text: 'الرجاء تعبئة جميع الحقول' });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setMessage({ type: 'error', text: 'كلمتا المرور غير متطابقتين' });
-      return;
-    }
-
-    if (password.length < 6) {
-      setMessage({ type: 'error', text: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' });
-      return;
-    }
-
-    if (inviteCode !== INVITE_CODE) {
-      setMessage({ type: 'error', text: 'رمز الدعوة غير صحيح' });
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-    });
-
-    if (error) {
-      setMessage({ type: 'error', text: error.message });
-    } else if (data.user) {
-      setMessage({ type: 'success', text: 'تم إنشاء الحساب بنجاح!' });
-      setTimeout(() => window.location.reload(), 1500);
-    } else if (data.session) {
-      window.location.reload();
-    } else {
-      setMessage({ type: 'success', text: 'تم إرسال رابط التأكيد إلى بريدك الإلكتروني. الرجاء التحقق من صندوق الوارد.' });
-      setMode('login');
-    }
-    setIsLoading(false);
   };
 
   const handleForgotPassword = async () => {

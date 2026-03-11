@@ -40,7 +40,7 @@ export default function LogTab({ logs }: LogTabProps) {
     .filter(l => l.action === 'sold')
     .reduce((sum, l) => sum + (l.profit || 0), 0);
 
-  const fmt = (n: number) => n.toLocaleString('en-US');
+  const fmt = (n: number | null | undefined) => n == null ? '0' : n.toLocaleString('en-US');
 
   return (
     <div className="flex flex-col h-full">

@@ -67,8 +67,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       }
     } else {
       // Fallback: copy URL
-      navigator.clipboard.writeText(window.location.href);
-      alert('تم نسخ رابط التطبيق!');
+      try {
+        navigator.clipboard.writeText(window.location.href);
+        alert('تم نسخ رابط التطبيق!');
+      } catch (e) {
+        // Clipboard blocked - ignore silently
+      }
     }
   };
 
