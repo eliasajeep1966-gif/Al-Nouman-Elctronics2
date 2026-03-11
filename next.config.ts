@@ -3,6 +3,12 @@ import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
   turbopack: {},
+  // Enable static export for Netlify deployment
+  output: "export",
+  // Disable image optimization as it requires a server
+  images: {
+    unoptimized: true,
+  },
 };
 
 const pwaConfig = withPWA({
