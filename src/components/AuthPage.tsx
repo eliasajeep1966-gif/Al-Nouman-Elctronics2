@@ -9,7 +9,7 @@ const INVITE_CODE = '2001';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('login');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -28,8 +28,8 @@ export default function AuthPage() {
   }, []);
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
-      setMessage({ type: 'error', text: 'الرجاء إدخال اسم المستخدم وكلمة المرور' });
+    if (!email.trim() || !password.trim()) {
+      setMessage({ type: 'error', text: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور' });
       return;
     }
 
@@ -37,7 +37,7 @@ export default function AuthPage() {
     setMessage(null);
     
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: `${username.trim()}@electronics.local`,
+      email: email.trim(),
       password,
     });
 
@@ -78,7 +78,7 @@ export default function AuthPage() {
     setMessage(null);
 
     const { data, error } = await supabase.auth.signUp({
-      email: `${username.trim()}@electronics.local`,
+      email: email.trim(),
       password,
     });
 
@@ -102,7 +102,7 @@ export default function AuthPage() {
   };
 
   const resetForm = () => {
-    setUsername('');
+    setEmail('');
     setPassword('');
     setConfirmPassword('');
     setInviteCode('');
@@ -152,16 +152,16 @@ export default function AuthPage() {
             {mode === 'signup' && 'إنشاء حساب جديد'}
           </h2>
 
-          {/* Username Input */}
+          {/* Email Input */}
           <div className="mb-4">
             <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
-              اسم المستخدم
+              البريد الإلكتروني
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="hafez"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@email.com"
               className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
               dir="ltr"
             />
