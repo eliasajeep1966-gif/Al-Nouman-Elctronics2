@@ -128,8 +128,6 @@ export default function LoginScreen({
                 <Text style={styles.buttonText}>دخول</Text>
               )}
             </TouchableOpacity>
-
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
