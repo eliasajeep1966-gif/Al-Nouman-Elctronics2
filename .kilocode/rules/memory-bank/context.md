@@ -8,6 +8,8 @@
 
 ## Recently Completed
 
+- [x] إضافة نظام Offline-First مع مزامنة تلقائية (localStorage + Supabase Realtime)
+- [x] إضافة مؤشر حالة الاتصال (متصل/غير متصل) في الهيدر
 - [x] إصلاح أخطاء Console: مشكلة null في LogTab، مشكلة Clipboard API، إزالة duplicate props
 - [x] تبسيط نظام المصادقة: حذف شاشة "إنشاء حساب" من تطبيق الموبايل، الإبقاء فقط على تسجيل الدخول
 - [x] إصلاح مشكلة استمرار جلسة المصادقة في الموقع الإلكتروني (persistSession, detectSessionInUrl)

@@ -211,22 +211,142 @@ export function useStore() {
     loadFromStorage<number>(EXCHANGE_RATE_KEY, DEFAULT_USD_TO_SYP)
   );
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
 
-  // تحميل البيانات عند البداية
+  // فحص حالة الاتصال
+  useEffect(() => {
+    // فحص أولي
+    setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      // محاولة مزامنة عند العودة للنت
+      syncProductsToSupabase(products);
+      syncLogsToSupabase(logs);
+      syncLossesToSupabase(losses);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [products, logs, losses]);
+
+  // تحميل البيانات عند البداية - Offline First
   useEffect(() => {
     const loadData = async () => {
-      const cloudData = await loadFromSupabase();
-      
-      if (cloudData && cloudData.products.length > 0) {
-        setProducts(cloudData.products);
-        setLogs(cloudData.logs);
-        setLosses(cloudData.losses);
-        setExchangeRateState(cloudData.exchangeRate);
+      // أولاً: تحميل من التخزين المحلي
+      const localProducts = loadFromStorage<Product[]>(PRODUCTS_KEY, []);
+      const localLogs = loadFromStorage<LogEntry[]>(LOGS_KEY, []);
+      const localLosses = loadFromStorage<LossEntry[]>(LOSSES_KEY, []);
+      const localRate = loadFromStorage<number>(EXCHANGE_RATE_KEY, DEFAULT_USD_TO_SYP);
+
+      // إذا كان هناك نت، حاول تحميل من السحابة
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        const cloudData = await loadFromSupabase();
+        
+        if (cloudData && cloudData.products.length > 0) {
+          // استخدم بيانات السحابة (الأحدث)
+          setProducts(cloudData.products);
+          setLogs(cloudData.logs);
+          setLosses(cloudData.losses);
+          setExchangeRateState(cloudData.exchangeRate);
+        } else if (localProducts.length > 0) {
+          // إذا السحابة فارغة لكن المحلي فيه بيانات، ارفعها للسحابة
+          await syncProductsToSupabase(localProducts);
+          await syncLogsToSupabase(localLogs);
+          await syncLossesToSupabase(localLosses);
+        }
+      } else {
+        // بدون نت: استخدم البيانات المحلية
+        if (localProducts.length > 0) {
+          setProducts(localProducts);
+          setLogs(localLogs);
+          setLosses(localLosses);
+          setExchangeRateState(localRate);
+        }
       }
       setIsLoaded(true);
     };
     loadData();
   }, []);
+
+  // مزامنة تلقائية كل 5 ثواني عند الاتصال
+  useEffect(() => {
+    if (!isOnline) return;
+
+    const interval = setInterval(async () => {
+      const cloudData = await loadFromSupabase();
+      if (cloudData && cloudData.products.length > 0) {
+        // مقارنة مع البيانات المحلية وتحديث إذا كانت السحابة أحدث
+        const localProducts = loadFromStorage<Product[]>(PRODUCTS_KEY, []);
+        const localLogs = loadFromStorage<LogEntry[]>(LOGS_KEY, []);
+        const localLosses = loadFromStorage<LossEntry[]>(LOSSES_KEY, []);
+        
+        // إذا اختلفت البيانات، حدث المحلية
+        if (JSON.stringify(cloudData.products) !== JSON.stringify(localProducts)) {
+          setProducts(cloudData.products);
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(cloudData.products));
+        }
+        if (JSON.stringify(cloudData.logs) !== JSON.stringify(localLogs)) {
+          setLogs(cloudData.logs);
+          localStorage.setItem(LOGS_KEY, JSON.stringify(cloudData.logs));
+        }
+        if (JSON.stringify(cloudData.losses) !== JSON.stringify(localLosses)) {
+          setLosses(cloudData.losses);
+          localStorage.setItem(LOSSES_KEY, JSON.stringify(cloudData.losses));
+        }
+      }
+    }, 5000); // كل 5 ثواني
+
+    return () => clearInterval(interval);
+  }, [isOnline]);
+
+  // اشتراك Realtime للمزامنة الفورية
+  useEffect(() => {
+    if (!isOnline) return;
+
+    // الاشتراك في جدول المنتجات
+    const productsChannel = supabase
+      .channel('products-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.PRODUCTS }, (payload) => {
+        console.log('Products changed:', payload);
+        // إعادة تحميل البيانات عند حدوث تغيير
+        loadFromSupabase().then(cloudData => {
+          if (cloudData) {
+            setProducts(cloudData.products);
+            localStorage.setItem(PRODUCTS_KEY, JSON.stringify(cloudData.products));
+          }
+        });
+      })
+      .subscribe();
+
+    // الاشتراك في جدول السجلات
+    const logsChannel = supabase
+      .channel('logs-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.LOGS }, (payload) => {
+        console.log('Logs changed:', payload);
+        loadFromSupabase().then(cloudData => {
+          if (cloudData) {
+            setLogs(cloudData.logs);
+            localStorage.setItem(LOGS_KEY, JSON.stringify(cloudData.logs));
+          }
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(logsChannel);
+    };
+  }, [isOnline]);
 
   const setExchangeRate = useCallback((rate: number) => {
     setExchangeRateState(rate);
@@ -427,6 +547,7 @@ export function useStore() {
     losses,
     exchangeRate,
     isLoaded,
+    isOnline,
     addProduct,
     deleteProduct,
     sellProduct,

@@ -35,7 +35,7 @@ export default function MainApp() {
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const { products, logs, losses, exchangeRate, isLoaded, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData } = useStore();
+  const { products, logs, losses, exchangeRate, isLoaded, isOnline, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData } = useStore();
 
   const partsProducts = products.filter(p => p.category === 'parts');
   const toolsProducts = products.filter(p => p.category === 'tools');
@@ -133,6 +133,11 @@ export default function MainApp() {
                   <span className="text-indigo-300 text-xs group-hover:text-yellow-300 transition-colors">✏️</span>
                 </button>
               )}
+              {/* مؤشر حالة الاتصال */}
+              <div className={`flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full text-xs ${isOnline ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></span>
+                <span>{isOnline ? 'متصل' : 'غير متصل'}</span>
+              </div>
             </div>
           </div>
         </div>
