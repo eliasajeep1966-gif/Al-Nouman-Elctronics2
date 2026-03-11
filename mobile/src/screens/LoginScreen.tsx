@@ -20,20 +20,22 @@ interface LoginScreenProps {
 export default function LoginScreen({
   onLoginSuccess,
 }: LoginScreenProps) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('خطأ', 'الرجاء إدخال البريد الإلكتروني وكلمة المرور');
+    if (!username.trim() || !password.trim()) {
+      Alert.alert('خطأ', 'الرجاء إدخال اسم المستخدم وكلمة المرور');
       return;
     }
 
     setIsLoading(true);
     try {
+      // Supabase requires email format, so we append a dummy domain
+      const email = `${username.trim()}@electronics.local`;
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email,
         password,
       });
 
@@ -88,14 +90,14 @@ export default function LoginScreen({
             <Text style={styles.formTitle}>تسجيل الدخول</Text>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>البريد الإلكتروني</Text>
+              <Text style={styles.inputLabel}>اسم المستخدم</Text>
               <TextInput
                 style={styles.input}
                 placeholder="example@email.com"
                 placeholderTextColor="#9ca3af"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
                 autoCapitalize="none"
                 autoCorrect={false}
                 textAlign="right"

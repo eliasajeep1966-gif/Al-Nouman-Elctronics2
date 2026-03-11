@@ -9,7 +9,7 @@ const INVITE_CODE = '2001';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('login');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -28,8 +28,8 @@ export default function AuthPage() {
   }, []);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      setMessage({ type: 'error', text: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور' });
+    if (!username.trim() || !password.trim()) {
+      setMessage({ type: 'error', text: 'الرجاء إدخال اسم المستخدم وكلمة المرور' });
       return;
     }
 
@@ -37,7 +37,7 @@ export default function AuthPage() {
     setMessage(null);
     
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: `${username.trim()}@electronics.local`,
       password,
     });
 
@@ -50,7 +50,11 @@ export default function AuthPage() {
   };
 
   const handleSignUp = async () => {
-    if (!email.trim() || !password.trim() || !confirmPassword.trim() || !inviteCode.trim()) {
+    // Signup disabled - contact owner to create account
+    setMessage({ type: 'error', text: 'الرجاء التواصل مع المالك لإنشاء حساب' });
+    return;
+
+    if (!username.trim() || !password.trim() || !confirmPassword.trim() || !inviteCode.trim()) {
       setMessage({ type: 'error', text: 'الرجاء تعبئة جميع الحقول' });
       return;
     }
@@ -74,7 +78,7 @@ export default function AuthPage() {
     setMessage(null);
 
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: `${username.trim()}@electronics.local`,
       password,
     });
 
@@ -98,7 +102,7 @@ export default function AuthPage() {
   };
 
   const resetForm = () => {
-    setEmail('');
+    setUsername('');
     setPassword('');
     setConfirmPassword('');
     setInviteCode('');
@@ -148,16 +152,16 @@ export default function AuthPage() {
             {mode === 'signup' && 'إنشاء حساب جديد'}
           </h2>
 
-          {/* Email Input */}
+          {/* Username Input */}
           <div className="mb-4">
             <label className="block text-indigo-200 text-sm font-medium mb-2 text-right">
-              البريد الإلكتروني
+              اسم المستخدم
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@email.com"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="hafez"
               className="w-full bg-white/15 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-right focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
               dir="ltr"
             />
