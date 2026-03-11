@@ -15,12 +15,10 @@ import { supabase } from '../lib/supabase';
 
 interface LoginScreenProps {
   onLoginSuccess: (userId: string) => void;
-  onNavigateToSignUp: () => void;
 }
 
 export default function LoginScreen({
   onLoginSuccess,
-  onNavigateToSignUp,
 }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -131,20 +129,6 @@ export default function LoginScreen({
               )}
             </TouchableOpacity>
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>أو</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={styles.signUpButton}
-              onPress={onNavigateToSignUp}
-            >
-              <Text style={styles.signUpText}>
-                ليس لديك حساب؟{' '}
-                <Text style={styles.signUpLink}>إنشاء حساب جديد</Text>
-              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -249,31 +233,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  dividerText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginHorizontal: 12,
-  },
-  signUpButton: {
-    alignItems: 'center',
-  },
-  signUpText: {
-    color: '#c7d2fe',
-    fontSize: 14,
-  },
-  signUpLink: {
-    color: '#818cf8',
     fontWeight: 'bold',
   },
 });
