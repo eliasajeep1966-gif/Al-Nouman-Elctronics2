@@ -1,8 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 import { Product, LogEntry, LossEntry, ProductCategory } from '../types';
 import { supabase, TABLES } from '../lib/supabase';
 
+const PRODUCTS_FILE = FileSystem.documentDirectory + 'products.json';
+const LOGS_FILE = FileSystem.documentDirectory + 'logs.json';
+const LOSSES_FILE = FileSystem.documentDirectory + 'losses.json';
+const SETTINGS_FILE = FileSystem.documentDirectory + 'settings.json';
+
+// Keys for AsyncStorage fallback
 const PRODUCTS_KEY = '@noman_products';
 const LOGS_KEY = '@noman_logs';
 const LOSSES_KEY = '@noman_losses';
@@ -16,6 +23,7 @@ function generateId(): string {
 
 function formatTimestamp(): string {
   const now = new Date();
+  if (!now) return '';
   return now.toLocaleString('en-GB', {
     timeZone: 'Asia/Damascus',
     year: 'numeric',
@@ -25,13 +33,67 @@ function formatTimestamp(): string {
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  });
+  }) || '';
 }
 
 function getCurrentMonth(): string {
   const now = new Date();
-  const damascusDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Damascus' }));
-  return `${damascusDate.getFullYear()}-${String(damascusDate.getMonth() + 1).padStart(2, '0')}`;
+  if (!now) return '';
+  try {
+    const damascusDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Damascus' }));
+    return `${damascusDate.getFullYear()}-${String(damascusDate.getMonth() + 1).padStart(2, '0')}`;
+  } catch {
+    return '';
+  }
+}
+
+// File-based storage functions
+async function saveToFile<T>(filePath: string, data: T): Promise<void> {
+  try {
+    await FileSystem.writeAsStringAsync(filePath, JSON.stringify(data), {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+  } catch (e) {
+    console.error('Error saving to file:', e);
+    // Fallback to AsyncStorage
+    try {
+      const key = filePath === PRODUCTS_FILE ? PRODUCTS_KEY : 
+                  filePath === LOGS_FILE ? LOGS_KEY : 
+                  filePath === LOSSES_FILE ? LOSSES_KEY : 'unknown';
+      await AsyncStorage.setItem(key, JSON.stringify(data));
+    } catch (asyncError) {
+      console.error('AsyncStorage fallback error:', asyncError);
+    }
+  }
+}
+
+async function loadFromFile<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(filePath);
+    if (fileInfo.exists) {
+      const content = await FileSystem.readAsStringAsync(filePath, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      return JSON.parse(content) as T;
+    }
+  } catch (e) {
+    console.log('File not found or error, trying AsyncStorage:', e);
+  }
+  
+  // Fallback to AsyncStorage
+  try {
+    const key = filePath === PRODUCTS_FILE ? PRODUCTS_KEY : 
+                filePath === LOGS_FILE ? LOGS_KEY : 
+                filePath === LOSSES_FILE ? LOSSES_KEY : null;
+    if (key) {
+      const stored = await AsyncStorage.getItem(key);
+      if (stored) return JSON.parse(stored) as T;
+    }
+  } catch (asyncError) {
+    console.error('AsyncStorage fallback read error:', asyncError);
+  }
+  
+  return fallback;
 }
 
 // Sync local data to Supabase
@@ -119,7 +181,7 @@ async function syncLossesToSupabase(losses: LossEntry[]) {
   }
 }
 
-// Load data from Supabase first, fallback to local
+// Load data from Supabase first, fallback to local files
 async function loadFromSupabase() {
   try {
     const [productsRes, logsRes, lossesRes, settingsRes] = await Promise.all([
@@ -136,7 +198,7 @@ async function loadFromSupabase() {
       originalPrice: p.original_price,
       sellingPrice: p.selling_price,
       originalPriceUSD: p.original_price_usd,
-      sellingPriceUSD: p.selling_price_usd,
+      sellingPriceUSD: p.original_price_usd,
       category: p.category as ProductCategory,
       specifications: p.specifications,
       userId: p.user_id,
@@ -173,17 +235,17 @@ async function loadFromSupabase() {
 
     const exchangeRate = settingsRes.data?.exchange_rate || DEFAULT_USD_TO_SYP;
 
-    // Save to local storage as backup
+    // Save to file storage as primary, AsyncStorage as backup
     if (products.length > 0) {
-      await AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+      await saveToFile(PRODUCTS_FILE, products);
     }
     if (logs.length > 0) {
-      await AsyncStorage.setItem(LOGS_KEY, JSON.stringify(logs));
+      await saveToFile(LOGS_FILE, logs);
     }
     if (losses.length > 0) {
-      await AsyncStorage.setItem(LOSSES_KEY, JSON.stringify(losses));
+      await saveToFile(LOSSES_FILE, losses);
     }
-    await AsyncStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(exchangeRate));
+    await saveToFile(SETTINGS_FILE, { exchangeRate });
 
     return { products, logs, losses, exchangeRate, fromCloud: true };
   } catch (e) {
@@ -198,45 +260,102 @@ export function useStore() {
   const [losses, setLosses] = useState<LossEntry[]>([]);
   const [exchangeRate, setExchangeRateState] = useState<number>(DEFAULT_USD_TO_SYP);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isFirstLoad = useRef(true);
 
-  // تحميل البيانات - أولاً من Supabase ثم من التخزين المحلي
+  // تحميل البيانات - الأول من الملفات المحلية ثم Supabase
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Try Supabase first
-        const cloudData = await loadFromSupabase();
-        
-        if (cloudData && cloudData.products.length > 0) {
-          setProducts(cloudData.products);
-          setLogs(cloudData.logs);
-          setLosses(cloudData.losses);
-          setExchangeRateState(cloudData.exchangeRate);
-        } else {
-          // Fallback to local storage
-          const [storedProducts, storedLogs, storedLosses, storedRate] = await Promise.all([
-            AsyncStorage.getItem(PRODUCTS_KEY),
-            AsyncStorage.getItem(LOGS_KEY),
-            AsyncStorage.getItem(LOSSES_KEY),
-            AsyncStorage.getItem(EXCHANGE_RATE_KEY),
-          ]);
+        // First, load from local files (Offline-First)
+        const [localProducts, localLogs, localLosses, localSettings] = await Promise.all([
+          loadFromFile<Product[]>(PRODUCTS_FILE, []),
+          loadFromFile<LogEntry[]>(LOGS_FILE, []),
+          loadFromFile<LossEntry[]>(LOSSES_FILE, []),
+          loadFromFile<{ exchangeRate?: number }>(SETTINGS_FILE, { exchangeRate: DEFAULT_USD_TO_SYP }),
+        ]);
 
-          if (storedProducts) setProducts(JSON.parse(storedProducts));
-          if (storedLogs) setLogs(JSON.parse(storedLogs));
-          if (storedLosses) setLosses(JSON.parse(storedLosses));
-          if (storedRate) setExchangeRateState(JSON.parse(storedRate));
+        if (localProducts.length > 0) {
+          setProducts(localProducts);
+          setLogs(localLogs);
+          setLosses(localLosses);
+          setExchangeRateState(localSettings.exchangeRate || DEFAULT_USD_TO_SYP);
+        }
+
+        // Then try to sync with Supabase if online
+        const networkStatus = await fetch('https://www.google.com', { method: 'HEAD' })
+          .then(() => true)
+          .catch(() => false);
+        setIsOnline(networkStatus);
+
+        if (networkStatus) {
+          const cloudData = await loadFromSupabase();
+          if (cloudData && cloudData.products.length > 0) {
+            setProducts(cloudData.products);
+            setLogs(cloudData.logs);
+            setLosses(cloudData.losses);
+            setExchangeRateState(cloudData.exchangeRate);
+          }
         }
       } catch (e) {
         console.error('Error loading data:', e);
       } finally {
         setIsLoaded(true);
+        isFirstLoad.current = false;
       }
     };
     loadData();
   }, []);
 
+  // Network status detection and periodic sync
+  useEffect(() => {
+    // Check network status
+    const checkNetwork = async () => {
+      try {
+        const response = await fetch('https://www.google.com', { method: 'HEAD', cache: 'no-cache' });
+        const online = response.ok;
+        setIsOnline(online);
+        
+        if (online && products.length > 0) {
+          // Sync to Supabase when back online
+          syncProductsToSupabase(products);
+          syncLogsToSupabase(logs);
+          syncLossesToSupabase(losses);
+        }
+      } catch {
+        setIsOnline(false);
+      }
+    };
+
+    // Initial check
+    checkNetwork();
+
+    // Periodic sync every 10 seconds
+    syncIntervalRef.current = setInterval(() => {
+      checkNetwork();
+    }, 10000);
+
+    return () => {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+      }
+    };
+  }, [products, logs, losses]);
+
+  // Save to files whenever data changes (after initial load)
+  useEffect(() => {
+    if (!isFirstLoad.current && isLoaded) {
+      saveToFile(PRODUCTS_FILE, products);
+      saveToFile(LOGS_FILE, logs);
+      saveToFile(LOSSES_FILE, losses);
+      saveToFile(SETTINGS_FILE, { exchangeRate });
+    }
+  }, [products, logs, losses, exchangeRate, isLoaded]);
+
   const setExchangeRate = useCallback(async (rate: number) => {
     setExchangeRateState(rate);
-    await AsyncStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(rate));
+    await saveToFile(SETTINGS_FILE, { exchangeRate: rate });
     // Sync to Supabase
     try {
       await supabase.from(TABLES.SETTINGS).upsert({
@@ -249,8 +368,9 @@ export function useStore() {
   }, []);
 
   // دالة إضافة منتج - USD كمدخل رئيسي
-  const addProduct = useCallback(// eslint-disable-next-line @typescript-eslint/no-unused-vars
-  (name: string, quantity: number, originalPriceUSD: number, sellingPriceUSD: number, category: ProductCategory, specifications?: string, _userId?: string) => {
+  const addProduct = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (name: string, quantity: number, originalPriceUSD: number, sellingPriceUSD: number, category: ProductCategory, specifications?: string, _userId?: string) => {
     const originalPriceSYP = Math.round(originalPriceUSD * exchangeRate);
     const sellingPriceSYP = Math.round(sellingPriceUSD * exchangeRate);
 
@@ -270,10 +390,14 @@ export function useStore() {
 
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
-    AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(updatedProducts));
 
-    // Sync to Supabase
-    syncProductsToSupabase(updatedProducts);
+    // Save to file
+    saveToFile(PRODUCTS_FILE, updatedProducts);
+
+    // Sync to Supabase if online
+    if (isOnline) {
+      syncProductsToSupabase(updatedProducts);
+    }
 
     const logEntry: LogEntry = {
       id: generateId(),
@@ -290,11 +414,13 @@ export function useStore() {
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
-    AsyncStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
+    saveToFile(LOGS_FILE, updatedLogs);
     
-    // Sync logs to Supabase
-    syncLogsToSupabase(updatedLogs);
-  }, [products, logs, exchangeRate]);
+    // Sync logs to Supabase if online
+    if (isOnline) {
+      syncLogsToSupabase(updatedLogs);
+    }
+  }, [products, logs, exchangeRate, isOnline]);
 
   const deleteProduct = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -302,10 +428,12 @@ export function useStore() {
 
     const updatedProducts = products.filter(p => p.id !== productId);
     setProducts(updatedProducts);
-    AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(updatedProducts));
+    saveToFile(PRODUCTS_FILE, updatedProducts);
     
-    // Sync to Supabase
-    syncProductsToSupabase(updatedProducts);
+    // Sync to Supabase if online
+    if (isOnline) {
+      syncProductsToSupabase(updatedProducts);
+    }
 
     const logEntry: LogEntry = {
       id: generateId(),
@@ -317,11 +445,13 @@ export function useStore() {
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
-    AsyncStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
+    saveToFile(LOGS_FILE, updatedLogs);
     
-    // Sync logs to Supabase
-    syncLogsToSupabase(updatedLogs);
-  }, [products, logs]);
+    // Sync logs to Supabase if online
+    if (isOnline) {
+      syncLogsToSupabase(updatedLogs);
+    }
+  }, [products, logs, isOnline]);
 
   const sellProduct = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -331,10 +461,12 @@ export function useStore() {
       p.id === productId ? { ...p, quantity: p.quantity - 1 } : p
     );
     setProducts(updatedProducts);
-    AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(updatedProducts));
+    saveToFile(PRODUCTS_FILE, updatedProducts);
     
-    // Sync to Supabase
-    syncProductsToSupabase(updatedProducts);
+    // Sync to Supabase if online
+    if (isOnline) {
+      syncProductsToSupabase(updatedProducts);
+    }
 
     const profit = product.sellingPrice - product.originalPrice;
     const profitUSD = product.sellingPriceUSD && product.originalPriceUSD
@@ -358,11 +490,13 @@ export function useStore() {
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
-    AsyncStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
+    saveToFile(LOGS_FILE, updatedLogs);
     
-    // Sync logs to Supabase
-    syncLogsToSupabase(updatedLogs);
-  }, [products, logs, exchangeRate]);
+    // Sync logs to Supabase if online
+    if (isOnline) {
+      syncLogsToSupabase(updatedLogs);
+    }
+  }, [products, logs, exchangeRate, isOnline]);
 
   const addLoss = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -372,10 +506,12 @@ export function useStore() {
       p.id === productId ? { ...p, quantity: p.quantity - 1 } : p
     );
     setProducts(updatedProducts);
-    AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(updatedProducts));
+    saveToFile(PRODUCTS_FILE, updatedProducts);
     
-    // Sync to Supabase
-    syncProductsToSupabase(updatedProducts);
+    // Sync to Supabase if online
+    if (isOnline) {
+      syncProductsToSupabase(updatedProducts);
+    }
 
     const lossAmount = product.originalPrice;
     const lossAmountUSD = product.originalPriceUSD || lossAmount / exchangeRate;
@@ -395,10 +531,12 @@ export function useStore() {
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
-    AsyncStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
+    saveToFile(LOGS_FILE, updatedLogs);
     
-    // Sync logs to Supabase
-    syncLogsToSupabase(updatedLogs);
+    // Sync logs to Supabase if online
+    if (isOnline) {
+      syncLogsToSupabase(updatedLogs);
+    }
 
     const lossEntry: LossEntry = {
       id: generateId(),
@@ -411,11 +549,13 @@ export function useStore() {
     };
     const updatedLosses = [lossEntry, ...losses];
     setLosses(updatedLosses);
-    AsyncStorage.setItem(LOSSES_KEY, JSON.stringify(updatedLosses));
+    saveToFile(LOSSES_FILE, updatedLosses);
     
-    // Sync losses to Supabase
-    syncLossesToSupabase(updatedLosses);
-  }, [products, logs, losses, exchangeRate]);
+    // Sync losses to Supabase if online
+    if (isOnline) {
+      syncLossesToSupabase(updatedLosses);
+    }
+  }, [products, logs, losses, exchangeRate, isOnline]);
 
   // دالة تصدير البيانات
   const exportData = useCallback(() => {
@@ -435,46 +575,60 @@ export function useStore() {
       const data = JSON.parse(jsonString);
       if (data.products) {
         setProducts(data.products);
-        AsyncStorage.setItem(PRODUCTS_KEY, JSON.stringify(data.products));
-        syncProductsToSupabase(data.products);
+        saveToFile(PRODUCTS_FILE, data.products);
+        if (isOnline) syncProductsToSupabase(data.products);
       }
       if (data.logs) {
         setLogs(data.logs);
-        AsyncStorage.setItem(LOGS_KEY, JSON.stringify(data.logs));
-        syncLogsToSupabase(data.logs);
+        saveToFile(LOGS_FILE, data.logs);
+        if (isOnline) syncLogsToSupabase(data.logs);
       }
       if (data.losses) {
         setLosses(data.losses);
-        AsyncStorage.setItem(LOSSES_KEY, JSON.stringify(data.losses));
-        syncLossesToSupabase(data.losses);
+        saveToFile(LOSSES_FILE, data.losses);
+        if (isOnline) syncLossesToSupabase(data.losses);
       }
       if (data.exchangeRate) {
         setExchangeRateState(data.exchangeRate);
-        AsyncStorage.setItem(EXCHANGE_RATE_KEY, JSON.stringify(data.exchangeRate));
+        saveToFile(SETTINGS_FILE, { exchangeRate: data.exchangeRate });
       }
       return true;
     } catch (e) {
       console.error('Import error:', e);
       return false;
     }
-  }, []);
+  }, [isOnline]);
 
   // حذف كل البيانات
   const clearAllData = useCallback(async () => {
     setProducts([]);
     setLogs([]);
     setLosses([]);
-    await AsyncStorage.multiRemove([PRODUCTS_KEY, LOGS_KEY, LOSSES_KEY]);
+    
+    // Clear files
+    try {
+      await FileSystem.deleteAsync(PRODUCTS_FILE, { idempotent: true });
+      await FileSystem.deleteAsync(LOGS_FILE, { idempotent: true });
+      await FileSystem.deleteAsync(LOSSES_FILE, { idempotent: true });
+      await FileSystem.deleteAsync(SETTINGS_FILE, { idempotent: true });
+    } catch (e) {
+      console.error('Error deleting files:', e);
+    }
+    
+    // Also clear AsyncStorage
+    await AsyncStorage.multiRemove([PRODUCTS_KEY, LOGS_KEY, LOSSES_KEY, EXCHANGE_RATE_KEY]);
     
     // Clear from Supabase
-    try {
-      await supabase.from(TABLES.PRODUCTS).delete().neq('id', '');
-      await supabase.from(TABLES.LOGS).delete().neq('id', '');
-      await supabase.from(TABLES.LOSSES).delete().neq('id', '');
-    } catch (e) {
-      console.error('Error clearing Supabase data:', e);
+    if (isOnline) {
+      try {
+        await supabase.from(TABLES.PRODUCTS).delete().neq('id', '');
+        await supabase.from(TABLES.LOGS).delete().neq('id', '');
+        await supabase.from(TABLES.LOSSES).delete().neq('id', '');
+      } catch (e) {
+        console.error('Error clearing Supabase data:', e);
+      }
     }
-  }, []);
+  }, [isOnline]);
 
   return {
     products,
@@ -482,6 +636,7 @@ export function useStore() {
     losses,
     exchangeRate,
     isLoaded,
+    isOnline,
     addProduct,
     deleteProduct,
     sellProduct,

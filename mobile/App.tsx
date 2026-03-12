@@ -40,7 +40,8 @@ function AppContent() {
     logs,
     losses,
     exchangeRate, 
-    isLoaded, 
+    isLoaded,
+    isOnline,
     addProduct, 
     deleteProduct, 
     sellProduct, 
@@ -214,6 +215,7 @@ function AppContent() {
             onImportData={importData}
             userId={userId}
             onLogout={handleLogout}
+            isOnline={isOnline}
           />
         )}
       </Stack.Screen>

@@ -41,6 +41,7 @@ type Props = {
   onImportData: (json: string) => boolean;
   userId: string;
   onLogout: () => void;
+  isOnline: boolean;
 };
 
 const tabs: { id: TabId; label: string; icon: string }[] = [
@@ -65,13 +66,18 @@ const COLORS = {
 };
 
 function getMonthLabel(month: string): string {
-  const [year, m] = month.split('-');
+  if (!month) return '';
+  const parts = month.split('-');
+  if (parts.length < 2) return '';
+  const [year, m] = parts;
   const date = new Date(parseInt(year), parseInt(m) - 1, 1);
-  return date.toLocaleString('ar-SY', { month: 'long', year: 'numeric' });
+  if (!date || isNaN(date.getTime())) return '';
+  return date.toLocaleString('ar-SY', { month: 'long', year: 'numeric' }) || '';
 }
 
 function formatTimestamp(): string {
   const now = new Date();
+  if (!now) return '';
   return now.toLocaleString('en-GB', {
     timeZone: 'Asia/Damascus',
     year: 'numeric',
@@ -81,7 +87,7 @@ function formatTimestamp(): string {
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  });
+  }) || '';
 }
 
 export default function ProductListScreen({ 
@@ -101,6 +107,7 @@ export default function ProductListScreen({
   onExportData,
   userId,
   onLogout,
+  isOnline,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('parts');
   const [search, setSearch] = useState('');
@@ -110,8 +117,14 @@ export default function ProductListScreen({
   const [showSettings, setShowSettings] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
-    const damascus = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Damascus' }));
-    return `${damascus.getFullYear()}-${String(damascus.getMonth() + 1).padStart(2, '0')}`;
+    if (!now) return '';
+    try {
+      const damascus = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Damascus' }));
+      if (!damascus || isNaN(damascus.getTime())) return '';
+      return `${damascus.getFullYear()}-${String(damascus.getMonth() + 1).padStart(2, '0')}`;
+    } catch {
+      return '';
+    }
   });
 
   // تصفية المنتجات حسب الفئة
@@ -353,6 +366,11 @@ export default function ProductListScreen({
         </View>
         <Text style={styles.headerTitle}>إلكترونيات النعمان</Text>
         
+        {/* Online/Offline Indicator */}
+        <View style={[styles.onlineIndicator, { backgroundColor: isOnline ? '#22c55e' : '#ef4444' }]}>
+          <Text style={styles.onlineIndicatorText}>{isOnline ? 'متصل' : 'غير متصل'}</Text>
+        </View>
+        
         <TouchableOpacity style={styles.settingsBtnMain} onPress={() => setShowSettings(true)}>
           <Text style={styles.settingsBtnMainText}>⚙️</Text>
         </TouchableOpacity>
@@ -558,6 +576,8 @@ const styles = StyleSheet.create({
   headerIcon: { width: 56, height: 56, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   headerIconText: { fontSize: 28 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 12 },
+  onlineIndicator: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 12, marginBottom: 8 },
+  onlineIndicatorText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   settingsBtnMain: { position: 'absolute', top: 48, right: 16, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 8 },
   settingsBtnMainText: { fontSize: 20 },
   rateButton: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 16, marginBottom: 8 },
