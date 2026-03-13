@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -63,7 +63,7 @@ export default function LoginScreen({
               {
                 left: `${(index % 20) * 5}%`,
                 top: `${Math.floor(index / 20) * 6}%`,
-                opacity: 0.15 + (parseInt(bit) * 0.1),
+                opacity: 0.2 + (parseInt(bit) * 0.15),
               },
             ]}
           >
@@ -71,9 +71,6 @@ export default function LoginScreen({
           </Text>
         ))}
       </View>
-
-      {/* Blue Gradient Background */}
-      <View style={styles.gradientBackground} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -85,26 +82,30 @@ export default function LoginScreen({
         >
           {/* Logo/Title Section */}
           <View style={styles.titleContainer}>
-            <Text style={styles.titleArabic}>إلكترونيات النعمان</Text>
+            <View style={styles.circuitIconContainer}>
+              <Text style={styles.circuitIcon}>{'⚡'}</Text>
+            </View>
+            <Text style={styles.titleArabic}>الكَترونِيات النُّعمان</Text>
             <Text style={styles.titleEnglish}>Al-Nouman Electronics</Text>
-            <View style={styles.goldLine} />
           </View>
 
-          {/* Login Form - Frosted Glass */}
+          {/* Login Form - Glassmorphism */}
           <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>تسجيل الدخول</Text>
+            <View style={styles.formTitleContainer}>
+              <Text style={styles.formTitle}>تسجيل الدخول</Text>
+            </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>البريد الإلكتروني</Text>
               <TextInput
                 style={styles.input}
-                placeholder="example@email.com"
+                placeholder="Email"
                 placeholderTextColor="rgba(212, 175, 55, 0.5)"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 autoCorrect={false}
-                textAlign="right"
+                textAlign="center"
                 keyboardType="email-address"
               />
             </View>
@@ -113,16 +114,16 @@ export default function LoginScreen({
               <Text style={styles.inputLabel}>كلمة المرور</Text>
               <TextInput
                 style={styles.input}
-                placeholder="أدخل كلمة المرور"
+                placeholder="Password"
                 placeholderTextColor="rgba(212, 175, 55, 0.5)"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                textAlign="right"
+                textAlign="center"
               />
             </View>
 
-            <Text style={styles.forgotPasswordText}>نسيت كلمة المرور؟ تواصل مع المالك</Text>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
 
             <TouchableOpacity
               style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -130,9 +131,9 @@ export default function LoginScreen({
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#1e3a8a" />
+                <ActivityIndicator color="#000" />
               ) : (
-                <Text style={styles.buttonText}>دخول</Text>
+                <Text style={styles.buttonText}>SIGN IN</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -145,7 +146,7 @@ export default function LoginScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#0a1929',
   },
   binaryContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -153,13 +154,9 @@ const styles = StyleSheet.create({
   },
   binaryText: {
     position: 'absolute',
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#d4af37',
-  },
-  gradientBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#1e3a8a',
+    color: '#1e3a8a',
   },
   keyboardView: {
     flex: 1,
@@ -173,11 +170,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
+  circuitIconContainer: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'rgba(30, 58, 138, 0.8)',
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#d4af37',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  circuitIcon: {
+    fontSize: 60,
+    color: '#d4af37',
+  },
   titleArabic: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#d4af37',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    color: '#f5d042',
+    textShadowColor: 'rgba(212, 175, 55, 0.5)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 10,
     letterSpacing: 2,
@@ -189,34 +206,30 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     fontWeight: '500',
   },
-  goldLine: {
-    width: 100,
-    height: 3,
-    backgroundColor: '#d4af37',
-    marginTop: 16,
-    borderRadius: 2,
-  },
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 24,
-    padding: 24,
+    padding: 30,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
-    shadowColor: '#000',
+    borderColor: 'rgba(139, 92, 246, 0.5)',
+    shadowColor: '#8b5cf6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  formTitleContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
   formTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#d4af37',
     textAlign: 'center',
-    marginBottom: 24,
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   inputLabel: {
     fontSize: 14,
@@ -227,19 +240,19 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: 'rgba(30, 58, 138, 0.5)',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     fontSize: 16,
     color: '#d4af37',
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.4)',
-    textAlign: 'right',
+    textAlign: 'center',
   },
   forgotPasswordText: {
     color: '#93c5fd',
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   button: {
     backgroundColor: '#d4af37',
@@ -256,8 +269,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#1e3a8a',
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
+    letterSpacing: 1,
   },
 });
