@@ -396,11 +396,11 @@ export default function ProductListScreen({
         </View>
         <Text style={[styles.logProduct, { color: '#4f46e5' }]}>{item.productName}</Text>
         {item.quantity && <Text style={[styles.logQty, { color: theme.textMuted }]}>الكمية: {item.quantity}</Text>}
-        {item.profit !== undefined && item.profit > 0 && (
-          <Text style={[styles.logProfit, { color: '#16a34a' }]}>💵 ربح: {item.profit.toLocaleString('en-US')} ل.س</Text>
+        {item.profit != null && item.profit > 0 && (
+          <Text style={[styles.logProfit, { color: COLORS.green }]}>💵 ربح: {(item.profit || 0).toLocaleString('en-US')} ل.س</Text>
         )}
-        {item.lossAmount !== undefined && (
-          <Text style={[styles.logLoss, { color: '#d97706' }]}>📉 خسارة: {item.lossAmount.toLocaleString('en-US')} ل.س</Text>
+        {item.lossAmount != null && (
+          <Text style={[styles.logLoss, { color: COLORS.red }]}>📉 خسارة: {(item.lossAmount || 0).toLocaleString('en-US')} ل.س</Text>
         )}
       </View>
     );
