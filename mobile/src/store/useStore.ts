@@ -48,7 +48,9 @@ function getCurrentMonth(): string {
   }
 }
 
-// File-based storage functions
+// File-based storage functions - Using legacy API to avoid deprecation warnings
+import { EncodingType } from 'expo-file-system/legacy';
+
 async function saveToFile<T>(filePath: string, data: T): Promise<void> {
   try {
     if (!filePath || !FileSystem.documentDirectory) {
@@ -56,7 +58,7 @@ async function saveToFile<T>(filePath: string, data: T): Promise<void> {
     }
     const jsonString = JSON.stringify(data);
     await FileSystem.writeAsStringAsync(filePath, jsonString, {
-      encoding: FileSystem.EncodingType.UTF8,
+      encoding: EncodingType.UTF8,
     });
   } catch (e) {
     console.error('Error saving to file:', e);
@@ -77,7 +79,7 @@ async function loadFromFile<T>(filePath: string, fallback: T): Promise<T> {
     const fileInfo = await FileSystem.getInfoAsync(filePath);
     if (fileInfo.exists) {
       const content = await FileSystem.readAsStringAsync(filePath, {
-        encoding: FileSystem.EncodingType.UTF8,
+        encoding: EncodingType.UTF8,
       });
       return JSON.parse(content) as T;
     }
