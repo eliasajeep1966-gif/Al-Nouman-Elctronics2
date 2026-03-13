@@ -51,18 +51,25 @@ const tabs: { id: TabId; label: string; icon: string }[] = [
   { id: 'log', label: 'السجل', icon: '📋' },
 ];
 
-// ألوان الموقع الأساسية
+// ألوان الموقع الأساسية - Blue & Gold Theme
 const COLORS = {
-  purple: '#312e81',
-  purpleLight: '#4338ca',
-  purpleDark: '#1e1b4b',
-  amber: '#f59e0b',
+  blue: '#1e40af',
+  blueLight: '#3b82f6',
+  blueLighter: '#60a5fa',
+  blueDark: '#1e3a8a',
+  gold: '#d4af37',
+  goldLight: '#f5d042',
+  goldDark: '#b8860b',
   white: '#ffffff',
-  background: '#f8fafc',
-  backgroundDark: '#0f172a',
+  background: '#f0f9ff',
+  backgroundDark: '#0c1929',
   textDark: '#1e293b',
   textLight: '#f1f5f9',
   textMuted: '#64748b',
+  green: '#16a34a',
+  greenLight: '#22c55e',
+  red: '#dc2626',
+  redLight: '#ef4444',
 };
 
 function getMonthLabel(month: string): string {
@@ -284,21 +291,23 @@ export default function ProductListScreen({
     );
   };
 
-  // Theme colors
+  // Theme colors - Blue & Gold
   const theme = isDarkMode ? {
-    bg: '#0f172a',
-    card: '#1e293b',
+    bg: '#0c1929',
+    card: '#1e3a5f',
     text: '#f1f5f9',
     textMuted: '#94a3b8',
     border: '#334155',
-    accent: '#6366f1',
+    accent: COLORS.blueLight,
+    gold: COLORS.gold,
   } : {
-    bg: '#f8fafc',
+    bg: '#f0f9ff',
     card: '#ffffff',
     text: '#1e293b',
     textMuted: '#64748b',
-    border: '#e2e8f0',
-    accent: '#4f46e5',
+    border: '#bfdbfe',
+    accent: COLORS.blue,
+    gold: COLORS.goldDark,
   };
 
   const renderProduct = ({ item }: { item: Product }) => {
@@ -332,17 +341,17 @@ export default function ProductListScreen({
             <Text style={[styles.priceUSD, { color: theme.text }]}>${originalUSD.toFixed(2)}</Text>
             <Text style={[styles.priceSYP, { color: theme.textMuted }]}>{item.originalPrice.toLocaleString('en-US')} ل.س</Text>
           </View>
-          <View style={[styles.priceBox, { backgroundColor: COLORS.purple }]}>
+          <View style={[styles.priceBox, { backgroundColor: COLORS.blue }]}>
             <Text style={[styles.priceLabelWhite]}>سعر البيع</Text>
             <Text style={[styles.priceUSDWhite]}>${sellingUSD.toFixed(2)}</Text>
             <Text style={[styles.priceSYPWhite]}>{item.sellingPrice.toLocaleString('en-US')} ل.س</Text>
           </View>
           <View style={[styles.priceBox, profit >= 0 ? styles.profitBox : styles.lossBox]}>
-            <Text style={[styles.priceLabel, { color: profit >= 0 ? '#16a34a' : '#dc2626' }]}>الربح</Text>
-            <Text style={[styles.priceUSD, { color: profit >= 0 ? '#16a34a' : '#dc2626' }]}>
+            <Text style={[styles.priceLabel, { color: profit >= 0 ? COLORS.green : COLORS.red }]}>الربح</Text>
+            <Text style={[styles.priceUSD, { color: profit >= 0 ? COLORS.green : COLORS.red }]}>
               {profitUSD >= 0 ? '+' : ''}${profitUSD.toFixed(2)}
             </Text>
-            <Text style={[styles.priceSYP, { color: profit >= 0 ? '#16a34a' : '#dc2626' }]}>{profitPercent}%</Text>
+            <Text style={[styles.priceSYP, { color: profit >= 0 ? COLORS.green : COLORS.red }]}>{profitPercent}%</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -402,7 +411,7 @@ export default function ProductListScreen({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.purpleDark} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.blueDark} />
       
       {/* Header - Dark Purple Quarter */}
       <View style={styles.header}>
@@ -453,7 +462,7 @@ export default function ProductListScreen({
         <>
           <View style={[styles.statsBar, { backgroundColor: theme.card }]}>
             <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>المنتجات</Text><Text style={[styles.statValue, { color: theme.text }]}>{totalProducts}</Text></View>
-            <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>إجمالي القطع</Text><Text style={[styles.statValue, { color: COLORS.purple }]}>{totalItems}</Text></View>
+            <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>إجمالي القطع</Text><Text style={[styles.statValue, { color: COLORS.blue }]}>{totalItems}</Text></View>
             <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>الربح المتوقع</Text><Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed]}>${totalProfitUSD.toFixed(0)}</Text></View>
           </View>
 
@@ -562,7 +571,7 @@ export default function ProductListScreen({
       )}
 
       {/* Footer with BY ELIAS AJEEB */}
-      <View style={[styles.footer, { backgroundColor: COLORS.purpleDark }]}>
+      <View style={[styles.footer, { backgroundColor: COLORS.blueDark }]}>
         <View style={styles.footerContent}>
           <Text style={styles.footerBrand}>BY ELIAS AJEEP</Text>
           <View style={styles.footerDecor}>

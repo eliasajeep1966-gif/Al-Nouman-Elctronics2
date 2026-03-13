@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { supabase } from '../lib/supabase';
 interface LoginScreenProps {
   onLoginSuccess: (userId: string) => void;
 }
+
+const BINARY_PATTERN = '0101100101101010010110100101101010011010101100101011010010110100101';
 
 export default function LoginScreen({
   onLoginSuccess,
@@ -51,23 +53,27 @@ export default function LoginScreen({
 
   return (
     <View style={styles.container}>
-      {/* Background with blurred squares */}
-      <View style={styles.backgroundContainer}>
-        {[...Array(6)].map((_, i) => (
-          <View
-            key={i}
+      {/* Binary Background Pattern */}
+      <View style={styles.binaryContainer}>
+        {BINARY_PATTERN.split('').map((bit, index) => (
+          <Text
+            key={index}
             style={[
-              styles.blurredSquare,
+              styles.binaryText,
               {
-                left: `${15 + (i % 3) * 35}%`,
-                top: `${10 + Math.floor(i / 3) * 40}%`,
-                backgroundColor: i % 2 === 0 ? '#6366f1' : '#8b5cf6',
-                transform: [{ rotate: `${(i * 45) % 360}deg` }],
+                left: `${(index % 20) * 5}%`,
+                top: `${Math.floor(index / 20) * 6}%`,
+                opacity: 0.15 + (parseInt(bit) * 0.1),
               },
             ]}
-          />
+          >
+            {bit}
+          </Text>
         ))}
       </View>
+
+      {/* Blue Gradient Background */}
+      <View style={styles.gradientBackground} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -79,11 +85,12 @@ export default function LoginScreen({
         >
           {/* Logo/Title Section */}
           <View style={styles.titleContainer}>
-            <Text style={styles.titleArabic}>الكَترونِيات النُّعمان</Text>
+            <Text style={styles.titleArabic}>إلكترونيات النعمان</Text>
             <Text style={styles.titleEnglish}>Al-Nouman Electronics</Text>
+            <View style={styles.goldLine} />
           </View>
 
-          {/* Login Form */}
+          {/* Login Form - Frosted Glass */}
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>تسجيل الدخول</Text>
 
@@ -92,7 +99,7 @@ export default function LoginScreen({
               <TextInput
                 style={styles.input}
                 placeholder="example@email.com"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="rgba(212, 175, 55, 0.5)"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -107,7 +114,7 @@ export default function LoginScreen({
               <TextInput
                 style={styles.input}
                 placeholder="أدخل كلمة المرور"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="rgba(212, 175, 55, 0.5)"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -123,7 +130,7 @@ export default function LoginScreen({
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#1e3a8a" />
               ) : (
                 <Text style={styles.buttonText}>دخول</Text>
               )}
@@ -138,18 +145,21 @@ export default function LoginScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1e1b4b',
+    backgroundColor: '#1e3a8a',
   },
-  backgroundContainer: {
+  binaryContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  blurredSquare: {
+  binaryText: {
     position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 20,
-    opacity: 0.3,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#d4af37',
+  },
+  gradientBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1e3a8a',
   },
   keyboardView: {
     flex: 1,
@@ -164,32 +174,44 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   titleArabic: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#fff',
-    textShadowColor: 'rgba(99, 102, 241, 0.5)',
+    color: '#d4af37',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 10,
     letterSpacing: 2,
   },
   titleEnglish: {
     fontSize: 16,
-    color: '#a5b4fc',
-    marginTop: 8,
-    letterSpacing: 1,
+    color: '#93c5fd',
+    marginTop: 12,
+    letterSpacing: 2,
+    fontWeight: '500',
+  },
+  goldLine: {
+    width: 100,
+    height: 3,
+    backgroundColor: '#d4af37',
+    marginTop: 16,
+    borderRadius: 2,
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 24,
     padding: 24,
-    backdropFilter: 'blur(10px)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 10,
   },
   formTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#d4af37',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -198,38 +220,43 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#c7d2fe',
+    color: '#d4af37',
     marginBottom: 8,
     textAlign: 'right',
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(30, 58, 138, 0.5)',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#fff',
+    color: '#d4af37',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 20,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+    textAlign: 'right',
   },
   forgotPasswordText: {
-    color: '#818cf8',
+    color: '#93c5fd',
     fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   button: {
-    backgroundColor: '#6366f1',
+    backgroundColor: '#d4af37',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    shadowColor: '#d4af37',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonDisabled: {
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: '#1e3a8a',
     fontSize: 18,
     fontWeight: 'bold',
   },
