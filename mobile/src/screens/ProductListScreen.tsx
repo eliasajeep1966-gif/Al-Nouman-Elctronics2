@@ -115,6 +115,11 @@ export default function ProductListScreen({
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterMinPrice, setFilterMinPrice] = useState('');
+  const [filterMaxPrice, setFilterMaxPrice] = useState('');
+  const [filterMinQuantity, setFilterMinQuantity] = useState('');
+  const [filterMaxQuantity, setFilterMaxQuantity] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     if (!now) return '';
@@ -134,12 +139,50 @@ export default function ProductListScreen({
     return [];
   }, [products, activeTab]);
 
-  // البحث
+  // البحث والفلترة المتقدمة
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return categoryProducts;
-    const q = search.trim().toLowerCase();
-    return categoryProducts.filter(p => p.name.toLowerCase().includes(q));
-  }, [categoryProducts, search]);
+    let result = categoryProducts;
+    
+    // البحث النصي
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(q));
+    }
+    
+    // فلترة حسب السعر الأدنى
+    if (filterMinPrice.trim()) {
+      const minPrice = parseFloat(filterMinPrice);
+      if (!isNaN(minPrice)) {
+        result = result.filter(p => p.sellingPrice >= minPrice);
+      }
+    }
+    
+    // فلترة حسب السعر الأعلى
+    if (filterMaxPrice.trim()) {
+      const maxPrice = parseFloat(filterMaxPrice);
+      if (!isNaN(maxPrice)) {
+        result = result.filter(p => p.sellingPrice <= maxPrice);
+      }
+    }
+    
+    // فلترة حسب الكمية الأدنى
+    if (filterMinQuantity.trim()) {
+      const minQty = parseInt(filterMinQuantity);
+      if (!isNaN(minQty)) {
+        result = result.filter(p => p.quantity >= minQty);
+      }
+    }
+    
+    // فلترة حسب الكمية الأعلى
+    if (filterMaxQuantity.trim()) {
+      const maxQty = parseInt(filterMaxQuantity);
+      if (!isNaN(maxQty)) {
+        result = result.filter(p => p.quantity <= maxQty);
+      }
+    }
+    
+    return result;
+  }, [categoryProducts, search, filterMinPrice, filterMaxPrice, filterMinQuantity, filterMaxQuantity]);
 
   // حساب الإحصائيات
   const totalProducts = categoryProducts.length;
@@ -248,12 +291,14 @@ export default function ProductListScreen({
     text: '#f1f5f9',
     textMuted: '#94a3b8',
     border: '#334155',
+    accent: '#6366f1',
   } : {
     bg: '#f8fafc',
     card: '#ffffff',
     text: '#1e293b',
     textMuted: '#64748b',
     border: '#e2e8f0',
+    accent: '#4f46e5',
   };
 
   const renderProduct = ({ item }: { item: Product }) => {
@@ -427,8 +472,28 @@ export default function ProductListScreen({
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput style={[styles.searchInput, { color: theme.text }]} value={search} onChangeText={setSearch} placeholder={`البحث...`} placeholderTextColor={theme.textMuted} />
             </View>
+            <TouchableOpacity style={[styles.balanceToggle, { backgroundColor: showFilters ? theme.accent : theme.card }]} onPress={() => setShowFilters(!showFilters)}>
+              <Text style={styles.balanceToggleText}>⚙️</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.balanceToggle, { backgroundColor: theme.card }]} onPress={() => setShowBalance(!showBalance)}><Text style={styles.balanceToggleText}>💰</Text></TouchableOpacity>
           </View>
+
+          {showFilters && (
+            <View style={[styles.filtersContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.filterTitle, { color: theme.text }]}>فلترة متقدمة:</Text>
+              <View style={styles.filterRow}>
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.background, color: theme.text }]} value={filterMinPrice} onChangeText={setFilterMinPrice} placeholder="السعر من (ل.س)" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.background, color: theme.text }]} value={filterMaxPrice} onChangeText={setFilterMaxPrice} placeholder="السعر إلى (ل.س)" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+              </View>
+              <View style={styles.filterRow}>
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.background, color: theme.text }]} value={filterMinQuantity} onChangeText={setFilterMinQuantity} placeholder="الكمية من" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.background, color: theme.text }]} value={filterMaxQuantity} onChangeText={setFilterMaxQuantity} placeholder="الكمية إلى" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+              </View>
+              <TouchableOpacity style={[styles.clearFiltersBtn, { backgroundColor: theme.accent }]} onPress={() => { setFilterMinPrice(''); setFilterMaxPrice(''); setFilterMinQuantity(''); setFilterMaxQuantity(''); }}>
+                <Text style={styles.clearFiltersText}>مسح الفلاتر</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {filteredProducts.length === 0 ? (
             <View style={styles.emptyContainer}><Text style={[styles.emptyText, { color: theme.textMuted }]}>لا توجد منتجات</Text></View>
@@ -614,6 +679,12 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, paddingVertical: 10, fontSize: 14 },
   balanceToggle: { borderRadius: 12, padding: 12 },
   balanceToggleText: { fontSize: 18 },
+  filtersContainer: { marginHorizontal: 16, marginTop: 8, padding: 12, borderRadius: 12, borderWidth: 1 },
+  filterTitle: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  filterInput: { flex: 1, padding: 10, borderRadius: 8, fontSize: 14 },
+  clearFiltersBtn: { padding: 10, borderRadius: 8, alignItems: 'center' },
+  clearFiltersText: { color: '#fff', fontWeight: '600' },
   list: { padding: 16, paddingBottom: 100 },
   card: { borderRadius: 16, padding: 14, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   cardOutOfStock: { opacity: 0.7 },

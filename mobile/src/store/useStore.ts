@@ -1,13 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+import * as Notifications from 'expo-notifications';
 import { Product, LogEntry, LossEntry, ProductCategory } from '../types';
 import { supabase, TABLES } from '../lib/supabase';
 
-const PRODUCTS_FILE = FileSystem.documentDirectory + 'products.json';
-const LOGS_FILE = FileSystem.documentDirectory + 'logs.json';
-const LOSSES_FILE = FileSystem.documentDirectory + 'losses.json';
-const SETTINGS_FILE = FileSystem.documentDirectory + 'settings.json';
+const PRODUCTS_FILE = (FileSystem.documentDirectory || '') + 'products.json';
+const LOGS_FILE = (FileSystem.documentDirectory || '') + 'logs.json';
+const LOSSES_FILE = (FileSystem.documentDirectory || '') + 'losses.json';
+const SETTINGS_FILE = (FileSystem.documentDirectory || '') + 'settings.json';
 
 // Keys for AsyncStorage fallback
 const PRODUCTS_KEY = '@noman_products';
@@ -50,16 +51,20 @@ function getCurrentMonth(): string {
 // File-based storage functions
 async function saveToFile<T>(filePath: string, data: T): Promise<void> {
   try {
-    await FileSystem.writeAsStringAsync(filePath, JSON.stringify(data), {
+    if (!filePath || !FileSystem.documentDirectory) {
+      throw new Error('Invalid file path');
+    }
+    const jsonString = JSON.stringify(data);
+    await FileSystem.writeAsStringAsync(filePath, jsonString, {
       encoding: FileSystem.EncodingType.UTF8,
     });
   } catch (e) {
     console.error('Error saving to file:', e);
     // Fallback to AsyncStorage
     try {
-      const key = filePath === PRODUCTS_FILE ? PRODUCTS_KEY : 
-                  filePath === LOGS_FILE ? LOGS_KEY : 
-                  filePath === LOSSES_FILE ? LOSSES_KEY : 'unknown';
+      const key = filePath.includes('products') ? PRODUCTS_KEY : 
+                  filePath.includes('logs') ? LOGS_KEY : 
+                  filePath.includes('losses') ? LOSSES_KEY : 'unknown';
       await AsyncStorage.setItem(key, JSON.stringify(data));
     } catch (asyncError) {
       console.error('AsyncStorage fallback error:', asyncError);
@@ -179,6 +184,29 @@ async function syncLossesToSupabase(losses: LossEntry[]) {
   } catch (e) {
     console.error('Error syncing losses to Supabase:', e);
   }
+}
+
+const LOW_STOCK_THRESHOLD = 2;
+
+async function sendNotification(title: string, body: string) {
+  try {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') {
+      console.log('Notification permissions not granted');
+      return;
+    }
+    
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body },
+      trigger: null,
+    });
+  } catch (e) {
+    console.error('Error sending notification:', e);
+  }
+}
+
+function checkLowStock(products: Product[]): Product[] {
+  return products.filter(p => p.quantity > 0 && p.quantity < LOW_STOCK_THRESHOLD);
 }
 
 // Load data from Supabase first, fallback to local files
@@ -420,6 +448,15 @@ export function useStore() {
     if (isOnline) {
       syncLogsToSupabase(updatedLogs);
     }
+
+    // Send notification
+    sendNotification('➕ منتج جديد مضاف', `${name} - ${quantity} وحدة`);
+    
+    // Check low stock
+    const lowStockItems = checkLowStock(updatedProducts);
+    if (lowStockItems.length > 0) {
+      sendNotification('⚠️ تنبيه مخزون منخفض', `${lowStockItems.length} منتجات تحت ${LOW_STOCK_THRESHOLD} وحدة`);
+    }
   }, [products, logs, exchangeRate, isOnline]);
 
   const deleteProduct = useCallback((productId: string) => {
@@ -495,6 +532,15 @@ export function useStore() {
     // Sync logs to Supabase if online
     if (isOnline) {
       syncLogsToSupabase(updatedLogs);
+    }
+
+    // Send notification for sale
+    sendNotification('💰 تم البيع', `${product.name} - ربح: ${profit.toLocaleString()} ل.س`);
+    
+    // Check low stock after sale
+    const lowStockItems = checkLowStock(updatedProducts);
+    if (lowStockItems.length > 0) {
+      sendNotification('⚠️ تنبيه مخزون منخفض', `${lowStockItems.length} منتجات تحت ${LOW_STOCK_THRESHOLD} وحدة`);
     }
   }, [products, logs, exchangeRate, isOnline]);
 
