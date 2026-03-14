@@ -95,15 +95,15 @@ export default function MainApp() {
           {/* Exchange Rate Row - Dollar Price Stays */}
           <div className="flex justify-between items-center gap-3 mb-4">
             {/* User Info - Left Side */}
-            {currentUser && (
-              <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 flex items-center gap-2">
-                <span className="text-lg">👤</span>
-                <div className="flex flex-col">
-                  <span className="text-xs text-indigo-300">المستخدم</span>
-                  <span className="text-white font-bold text-sm">{currentUser.email.split('@')[0]}</span>
-                </div>
+            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 flex items-center gap-2">
+              <span className="text-lg">👤</span>
+              <div className="flex flex-col">
+                <span className="text-xs text-indigo-300">المستخدم</span>
+                <span className="text-white font-bold text-sm">
+                  {currentUser ? currentUser.email.split('@')[0] : '...'}
+                </span>
               </div>
-            )}
+            </div>
             <button
               onClick={() => setShowSettings(true)}
               className="w-full sm:w-auto bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-lg border border-white/10 hover:bg-white/20 transition-colors px-3 py-2"

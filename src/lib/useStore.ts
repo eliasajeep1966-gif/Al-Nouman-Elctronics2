@@ -220,11 +220,18 @@ export function useStore() {
   // Get current user
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const userEmail = user.email?.split('@')[0] || 'Unknown';
-        setCurrentUser({ email: user.email || 'Unknown', id: user.id });
-        currentUserRef.current = userEmail;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const userEmail = user.email?.split('@')[0] || 'Unknown';
+          setCurrentUser({ email: user.email || 'Unknown', id: user.id });
+          currentUserRef.current = userEmail;
+          console.log('User loaded:', userEmail);
+        } else {
+          console.log('No user logged in');
+        }
+      } catch (e) {
+        console.error('Error getting user:', e);
       }
     };
     getUser();
