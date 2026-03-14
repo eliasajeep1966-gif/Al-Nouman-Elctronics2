@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Product, LogEntry, LossEntry, ProductCategory } from './types';
 import { supabase, TABLES } from './supabase';
 
@@ -94,6 +94,7 @@ async function syncLogsToSupabase(logs: LogEntry[]) {
         loss_amount_usd: l.lossAmountUSD || 0,
         category: l.category,
         timestamp: l.timestamp,
+        performed_by: l.performedBy || '',
       }))
     ).select();
     
@@ -170,6 +171,7 @@ async function loadFromSupabase() {
       lossAmountUSD: l.loss_amount_usd,
       category: l.category,
       timestamp: l.timestamp,
+      performedBy: l.performed_by || undefined,
     }));
 
     const losses: LossEntry[] = (lossesRes.data || []).map(l => ({
@@ -212,6 +214,21 @@ export function useStore() {
   );
   const [isLoaded, setIsLoaded] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ email: string; id: string } | null>(null);
+  const currentUserRef = useRef<string>('Unknown');
+
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const userEmail = user.email?.split('@')[0] || 'Unknown';
+        setCurrentUser({ email: user.email || 'Unknown', id: user.id });
+        currentUserRef.current = userEmail;
+      }
+    };
+    getUser();
+  }, []);
 
   // فحص حالة الاتصال
   useEffect(() => {
@@ -411,6 +428,7 @@ export function useStore() {
         sellingPriceUSD,
         category,
         timestamp: formatTimestamp(),
+        performedBy: currentUserRef.current,
       };
       const updated = [logEntry, ...prev];
       localStorage.setItem(LOGS_KEY, JSON.stringify(updated));
@@ -436,6 +454,7 @@ export function useStore() {
           action: 'deleted',
           category: product.category,
           timestamp: formatTimestamp(),
+          performedBy: currentUserRef.current,
         };
         const updatedLogs = [logEntry, ...prevLogs];
         localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
@@ -475,6 +494,7 @@ export function useStore() {
           profitUSD,
           category: product.category,
           timestamp: formatTimestamp(),
+          performedBy: currentUserRef.current,
         };
         const updatedLogs = [logEntry, ...prevLogs];
         localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
@@ -514,6 +534,7 @@ export function useStore() {
           originalPriceUSD: product.originalPriceUSD,
           category: product.category,
           timestamp: formatTimestamp(),
+          performedBy: currentUserRef.current,
         };
         const updatedLogs = [logEntry, ...prevLogs];
         localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
@@ -548,6 +569,7 @@ export function useStore() {
     exchangeRate,
     isLoaded,
     isOnline,
+    currentUser,
     addProduct,
     deleteProduct,
     sellProduct,

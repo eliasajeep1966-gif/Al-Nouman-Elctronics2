@@ -31,6 +31,7 @@ export interface LogEntry {
   lossAmountUSD?: number;
   category: ProductCategory;
   timestamp: string;
+  performedBy?: string; // اسم المستخدم الذي قام بالإجراء
 }
 
 export interface LossEntry {

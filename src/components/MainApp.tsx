@@ -35,7 +35,7 @@ export default function MainApp() {
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const { products, logs, losses, exchangeRate, isLoaded, isOnline, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData } = useStore();
+  const { products, logs, losses, exchangeRate, isLoaded, isOnline, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData, currentUser } = useStore();
 
   const partsProducts = products.filter(p => p.category === 'parts');
   const toolsProducts = products.filter(p => p.category === 'tools');
@@ -93,7 +93,17 @@ export default function MainApp() {
           </div>
 
           {/* Exchange Rate Row - Dollar Price Stays */}
-          <div className="flex justify-center items-center gap-3 mb-4">
+          <div className="flex justify-between items-center gap-3 mb-4">
+            {/* User Info - Left Side */}
+            {currentUser && (
+              <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 flex items-center gap-2">
+                <span className="text-lg">👤</span>
+                <div className="flex flex-col">
+                  <span className="text-xs text-indigo-300">المستخدم</span>
+                  <span className="text-white font-bold text-sm">{currentUser.email.split('@')[0]}</span>
+                </div>
+              </div>
+            )}
             <button
               onClick={() => setShowSettings(true)}
               className="w-full sm:w-auto bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-lg border border-white/10 hover:bg-white/20 transition-colors px-3 py-2"
