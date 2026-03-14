@@ -42,6 +42,7 @@ function getCurrentMonth(): string {
 
 async function saveToAsyncStorage<T>(key: string, data: T): Promise<void> {
   try {
+    if (data == null) return; // Don't save null/undefined
     await AsyncStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
     console.error('Error saving to AsyncStorage:', e);
