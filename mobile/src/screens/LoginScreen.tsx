@@ -10,35 +10,40 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  ImageBackground,
+  Image,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+
+import { useFonts, Cairo_700Bold } from '@expo-google-fonts/cairo';
 
 interface LoginScreenProps {
   onLoginSuccess: (userId: string, email: string) => void;
 }
 
-const BINARY_PATTERN = '0101100101101010010110100101101010011010101100101011010010110100101';
+const backgroundImage = require('../../assets/background.png');
+const logoImage = require('../../assets/logo.png');
 
-export default function LoginScreen({
-  onLoginSuccess,
-}: LoginScreenProps) {
+export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const [fontsLoaded] = useFonts({
+    Cairo_700Bold,
+  });
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('خطأ', 'الرجاء إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
-
       if (error) {
         Alert.alert('خطأ في تسجيل الدخول', error.message);
       } else if (data.user) {
@@ -51,79 +56,49 @@ export default function LoginScreen({
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Binary Background Pattern */}
-      <View style={styles.binaryContainer}>
-        {BINARY_PATTERN.split('').map((bit, index) => (
-          <Text
-            key={index}
-            style={[
-              styles.binaryText,
-              {
-                left: `${(index % 20) * 5}%`,
-                top: `${Math.floor(index / 20) * 6}%`,
-                opacity: 0.2 + (parseInt(bit) * 0.15),
-              },
-            ]}
-          >
-            {bit}
-          </Text>
-        ))}
-      </View>
+  if (!fontsLoaded) {
+    return null;
+  }
 
+  return (
+    <ImageBackground
+      source={backgroundImage}
+      style={styles.container}
+      resizeMode="cover"
+    >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         style={styles.keyboardView}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo/Title Section */}
-          <View style={styles.titleContainer}>
-            <View style={styles.circuitIconContainer}>
-              <Text style={styles.circuitIcon}>{'⚡'}</Text>
-            </View>
-            <Text style={styles.titleArabic}>الكَترونِيات النُّعمان</Text>
-            <Text style={styles.titleEnglish}>Al-Nouman Electronics</Text>
-          </View>
+          <Text style={styles.title}>إلكترونيات النعمان</Text>
+          <Image source={logoImage} style={styles.logo} resizeMode="contain" alt="Logo of إلكترونيات النعمان" />
 
-          {/* Login Form - Glassmorphism */}
           <View style={styles.formContainer}>
-            <View style={styles.formTitleContainer}>
-              <Text style={styles.formTitle}>تسجيل الدخول</Text>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>البريد الإلكتروني</Text>
+            <View style={styles.glassInputContainer}>
               <TextInput
                 style={styles.input}
                 placeholder="Email"
-                placeholderTextColor="rgba(212, 175, 55, 0.5)"
+                placeholderTextColor="#ccc"
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
-                autoCorrect={false}
-                textAlign="center"
                 keyboardType="email-address"
               />
             </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>كلمة المرور</Text>
+            <View style={styles.glassInputContainer}>
               <TextInput
                 style={styles.input}
                 placeholder="Password"
-                placeholderTextColor="rgba(212, 175, 55, 0.5)"
+                placeholderTextColor="#ccc"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                textAlign="center"
               />
             </View>
-
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
 
             <TouchableOpacity
               style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -131,32 +106,25 @@ export default function LoginScreen({
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#000" />
+                <ActivityIndicator color="#111827" />
               ) : (
                 <Text style={styles.buttonText}>SIGN IN</Text>
               )}
             </TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a1929',
-  },
-  binaryContainer: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
-  },
-  binaryText: {
-    position: 'absolute',
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e3a8a',
+    justifyContent: 'center',
   },
   keyboardView: {
     flex: 1,
@@ -164,114 +132,66 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
-  titleContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
+  logo: {
+    width: 140,
+    height: 140,
+    marginBottom: 25,
   },
-  circuitIconContainer: {
-    width: 120,
-    height: 120,
-    backgroundColor: 'rgba(30, 58, 138, 0.8)',
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+  title: {
+    fontSize: 40,
+    color: '#D4AF37',
     marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#d4af37',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  circuitIcon: {
-    fontSize: 60,
-    color: '#d4af37',
-  },
-  titleArabic: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#f5d042',
-    textShadowColor: 'rgba(212, 175, 55, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
-    letterSpacing: 2,
-  },
-  titleEnglish: {
-    fontSize: 16,
-    color: '#93c5fd',
-    marginTop: 12,
-    letterSpacing: 2,
-    fontWeight: '500',
+    fontFamily: 'Cairo_700Bold',
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 24,
-    padding: 30,
+    width: '100%',
+    backgroundColor: 'rgba(17, 24, 39, 0.8)',
+    borderRadius: 20,
+    padding: 25,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.5)',
-    shadowColor: '#8b5cf6',
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+  },
+  glassInputContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 15,
-  },
-  formTitleContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#d4af37',
-    textAlign: 'center',
-  },
-  inputContainer: {
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
     marginBottom: 20,
   },
-  inputLabel: {
-    fontSize: 14,
-    color: '#d4af37',
-    marginBottom: 8,
-    textAlign: 'right',
-    fontWeight: '600',
-  },
   input: {
-    backgroundColor: 'rgba(30, 58, 138, 0.5)',
-    borderRadius: 16,
-    padding: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     fontSize: 16,
-    color: '#d4af37',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
+    color: '#FFFFFF',
     textAlign: 'center',
-  },
-  forgotPasswordText: {
-    color: '#93c5fd',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 24,
   },
   button: {
-    backgroundColor: '#d4af37',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#D4AF37',
+    borderRadius: 30,
+    paddingVertical: 18,
     alignItems: 'center',
-    shadowColor: '#d4af37',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 5,
+    marginTop: 10,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   buttonText: {
-    color: '#000',
-    fontSize: 18,
+    color: '#111827',
+    fontSize: 16,
     fontWeight: 'bold',
-    letterSpacing: 1,
+  },
+  forgotPasswordText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
