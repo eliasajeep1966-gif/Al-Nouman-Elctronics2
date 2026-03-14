@@ -14,7 +14,7 @@ import {
 import { supabase } from '../lib/supabase';
 
 interface LoginScreenProps {
-  onLoginSuccess: (userId: string) => void;
+  onLoginSuccess: (userId: string, email: string) => void;
 }
 
 const BINARY_PATTERN = '0101100101101010010110100101101010011010101100101011010010110100101';
@@ -42,7 +42,7 @@ export default function LoginScreen({
       if (error) {
         Alert.alert('خطأ في تسجيل الدخول', error.message);
       } else if (data.user) {
-        onLoginSuccess(data.user.id);
+        onLoginSuccess(data.user.id, email.trim());
       }
     } catch (e) {
       Alert.alert('خطأ', 'حدث خطأ غير متوقع');

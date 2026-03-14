@@ -40,6 +40,7 @@ type Props = {
   onExportData: () => string;
   onImportData: (json: string) => boolean;
   userId: string;
+  userEmail?: string | null;
   onLogout: () => void;
   isOnline: boolean;
 };
@@ -113,9 +114,13 @@ export default function ProductListScreen({
   onClearAll,
   onExportData,
   userId,
+  userEmail,
   onLogout,
   isOnline,
 }: Props) {
+  // استخراج اسم المستخدم من الإيميل
+  const username = userEmail ? userEmail.split('@')[0] : '';
+  
   const [activeTab, setActiveTab] = useState<TabId>('parts');
   const [search, setSearch] = useState('');
   const [showBalance, setShowBalance] = useState(false);
@@ -420,6 +425,13 @@ export default function ProductListScreen({
         </View>
         <Text style={styles.headerTitle}>إلكترونيات النعمان</Text>
         
+        {/* Username Display */}
+        {username && (
+          <View style={styles.usernameBadge}>
+            <Text style={styles.usernameText}>@{username}</Text>
+          </View>
+        )}
+        
         {/* Online/Offline Indicator */}
         <View style={[styles.onlineIndicator, { backgroundColor: isOnline ? '#22c55e' : '#ef4444' }]}>
           <Text style={styles.onlineIndicatorText}>{isOnline ? 'متصل' : 'غير متصل'}</Text>
@@ -650,6 +662,8 @@ const styles = StyleSheet.create({
   headerIcon: { width: 56, height: 56, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   headerIconText: { fontSize: 28 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 12 },
+  usernameBadge: { backgroundColor: 'rgba(212, 175, 55, 0.3)', borderRadius: 12, paddingVertical: 4, paddingHorizontal: 12, marginBottom: 8, borderWidth: 1, borderColor: '#d4af37' },
+  usernameText: { color: '#d4af37', fontSize: 12, fontWeight: '600' },
   onlineIndicator: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 12, marginBottom: 8 },
   onlineIndicatorText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   settingsBtnMain: { position: 'absolute', top: 48, right: 16, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 8 },

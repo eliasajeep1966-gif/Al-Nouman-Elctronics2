@@ -29,10 +29,12 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const USER_EMAIL_KEY = '@noman_user_email';
 
 function AppContent() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const { 
@@ -57,8 +59,12 @@ function AppContent() {
     const checkAuth = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem(USER_ID_KEY);
+        const storedEmail = await AsyncStorage.getItem(USER_EMAIL_KEY);
         if (storedUserId) {
           setUserId(storedUserId);
+        }
+        if (storedEmail) {
+          setUserEmail(storedEmail);
         }
       } catch (e) {
         console.error('Error checking auth:', e);
@@ -137,14 +143,18 @@ function AppContent() {
     AsyncStorage.setItem(DARK_MODE_KEY, JSON.stringify(newValue));
   };
 
-  const handleLoginSuccess = async (newUserId: string) => {
+  const handleLoginSuccess = async (newUserId: string, email: string) => {
     setUserId(newUserId);
+    setUserEmail(email);
     await AsyncStorage.setItem(USER_ID_KEY, newUserId);
+    await AsyncStorage.setItem(USER_EMAIL_KEY, email);
   };
 
   const handleLogout = async () => {
     setUserId(null);
+    setUserEmail(null);
     await AsyncStorage.removeItem(USER_ID_KEY);
+    await AsyncStorage.removeItem(USER_EMAIL_KEY);
   };
 
   // Show loading while checking auth
@@ -214,6 +224,7 @@ function AppContent() {
             onExportData={exportData}
             onImportData={importData}
             userId={userId}
+            userEmail={userEmail}
             onLogout={handleLogout}
             isOnline={isOnline}
           />
