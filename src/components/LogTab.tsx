@@ -129,6 +129,11 @@ export default function LogTab({ logs }: LogTabProps) {
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style.dot}`}>
                           {style.label}
                         </span>
+                        {log.performedBy && (
+                          <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                            👤 {log.performedBy}
+                          </span>
+                        )}
                         <span className="text-xs text-gray-500 bg-white/60 px-2 py-0.5 rounded-full">
                           {categoryLabels[log.category]}
                         </span>
