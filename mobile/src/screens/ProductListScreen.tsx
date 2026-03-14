@@ -475,7 +475,11 @@ export default function ProductListScreen({
           <View style={[styles.statsBar, { backgroundColor: theme.card }]}>
             <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>المنتجات</Text><Text style={[styles.statValue, { color: theme.text }]}>{totalProducts}</Text></View>
             <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>إجمالي القطع</Text><Text style={[styles.statValue, { color: COLORS.blue }]}>{totalItems}</Text></View>
-            <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>الربح المتوقع</Text><Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed]}>${totalProfitUSD.toFixed(0)}</Text></View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, { color: theme.textMuted }]}>الربح المتوقع</Text>
+              <Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed]}>${totalProfitUSD.toFixed(0)}</Text>
+              <Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed, { fontSize: 12 }]}>{totalProfit.toLocaleString('en-US')} ل.س</Text>
+            </View>
           </View>
 
           {showBalance && (
