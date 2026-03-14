@@ -52,6 +52,7 @@ function AppContent() {
     exportData,
     importData,
     clearAllData,
+    setCurrentUserEmail,
   } = useStore();
 
   // Check for existing session
@@ -146,6 +147,7 @@ function AppContent() {
   const handleLoginSuccess = async (newUserId: string, email: string) => {
     setUserId(newUserId);
     setUserEmail(email);
+    setCurrentUserEmail(email);
     await AsyncStorage.setItem(USER_ID_KEY, newUserId);
     await AsyncStorage.setItem(USER_EMAIL_KEY, email);
   };
@@ -153,6 +155,7 @@ function AppContent() {
   const handleLogout = async () => {
     setUserId(null);
     setUserEmail(null);
+    setCurrentUserEmail(null);
     await AsyncStorage.removeItem(USER_ID_KEY);
     await AsyncStorage.removeItem(USER_EMAIL_KEY);
   };

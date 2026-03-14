@@ -396,6 +396,11 @@ export default function ProductListScreen({
                 </Text>
               </View>
             )}
+            {item.performedBy && (
+              <View style={[styles.userBadge, { backgroundColor: COLORS.gold }]}>
+                <Text style={[styles.userBadgeText, { color: '#000' }]}>@{item.performedBy.split('@')[0]}</Text>
+              </View>
+            )}
           </View>
           <Text style={styles.logTime}>{item.timestamp}</Text>
         </View>
@@ -775,6 +780,8 @@ const styles = StyleSheet.create({
   logAction: { fontSize: 13, fontWeight: 'bold' },
   categoryBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   categoryText: { fontSize: 11, fontWeight: '600' },
+  userBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  userBadgeText: { fontSize: 11, fontWeight: '600' },
   logTime: { fontSize: 12, color: '#94a3b8' },
   logProduct: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
   logQty: { fontSize: 12 },

@@ -244,8 +244,14 @@ export function useStore() {
   const [exchangeRate, setExchangeRateState] = useState<number>(DEFAULT_USD_TO_SYP);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstLoad = useRef(true);
+
+  // دالة لتعيين البريد الإلكتروني للمستخدم الحالي
+  const setCurrentUserEmail = useCallback((email: string | null) => {
+    setUserEmail(email);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -379,6 +385,7 @@ export function useStore() {
       sellingPriceUSD,
       category,
       timestamp: formatTimestamp(),
+      performedBy: userEmail || undefined,
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
@@ -415,6 +422,7 @@ export function useStore() {
       action: 'deleted',
       category: product.category,
       timestamp: formatTimestamp(),
+      performedBy: userEmail || undefined,
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
@@ -458,6 +466,7 @@ export function useStore() {
       profitUSD,
       category: product.category,
       timestamp: formatTimestamp(),
+      performedBy: userEmail || undefined,
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
@@ -504,6 +513,7 @@ export function useStore() {
       originalPriceUSD: product.originalPriceUSD,
       category: product.category,
       timestamp: formatTimestamp(),
+      performedBy: userEmail || undefined,
     };
     const updatedLogs = [logEntry, ...logs];
     setLogs(updatedLogs);
@@ -521,6 +531,7 @@ export function useStore() {
       category: product.category,
       timestamp: formatTimestamp(),
       month: getCurrentMonth(),
+      performedBy: userEmail || undefined,
     };
     const updatedLosses = [lossEntry, ...losses];
     setLosses(updatedLosses);
@@ -604,5 +615,6 @@ export function useStore() {
     exportData,
     importData,
     clearAllData,
+    setCurrentUserEmail,
   };
 }
