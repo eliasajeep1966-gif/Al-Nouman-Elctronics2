@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/useStore';
 import ProductsTab from './ProductsTab';
 import LogTab from './LogTab';
@@ -35,7 +35,12 @@ export default function MainApp() {
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const { products, logs, losses, exchangeRate, isLoaded, isOnline, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData, currentUser } = useStore();
+  const [displayUsername, setDisplayUsername] = useState('...');
+  const { products, logs, losses, exchangeRate, isLoaded, isOnline, addProduct, deleteProduct, sellProduct, addLoss, setExchangeRate, exportData, importData } = useStore();
+
+  useEffect(() => {
+    setDisplayUsername(localStorage.getItem('noman_username') || 'غير محدد');
+  }, []);
 
   const partsProducts = products.filter(p => p.category === 'parts');
   const toolsProducts = products.filter(p => p.category === 'tools');
@@ -100,7 +105,7 @@ export default function MainApp() {
               <div className="flex flex-col">
                 <span className="text-xs text-indigo-300">المستخدم</span>
                 <span className="text-white font-bold text-sm">
-                  {currentUser ? currentUser.email.split('@')[0] : '...'}
+                  {displayUsername}
                 </span>
               </div>
             </div>

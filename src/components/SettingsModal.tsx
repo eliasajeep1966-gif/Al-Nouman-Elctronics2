@@ -21,6 +21,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [transferMode, setTransferMode] = useState<'send' | 'receive' | null>(null);
   const [qrData, setQrData] = useState('');
+  const [username, setUsername] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('noman_username') || '';
+    }
+    return '';
+  });
 
   // Get export/import functions from store
   const { exportData, importData } = useStore();
@@ -42,6 +48,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const handleSaveUsername = () => {
+    if (username.trim()) {
+      localStorage.setItem('noman_username', username.trim());
+      alert('✅ تم حفظ اسم المستخدم!');
     }
   };
 
@@ -120,6 +133,32 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
 
         <div className="p-4 space-y-4">
+          {/* Username Setting */}
+          <div className="p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xl">👤</span>
+              <span className="font-medium text-gray-700 dark:text-gray-200">اسم المستخدم</span>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              سيظهر اسمك في كل عملية تقوم بها
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="أدخل اسمك..."
+                className="flex-1 p-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200"
+              />
+              <button
+                onClick={handleSaveUsername}
+                className="py-2 px-3 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                حفظ
+              </button>
+            </div>
+          </div>
+
           {/* Dark Mode Toggle */}
           <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
             <div className="flex items-center gap-3">

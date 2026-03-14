@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Product, LogEntry, LossEntry, ProductCategory } from './types';
 import { supabase, TABLES } from './supabase';
 
@@ -8,6 +8,12 @@ const PRODUCTS_KEY = 'noman_products';
 const LOGS_KEY = 'noman_logs';
 const LOSSES_KEY = 'noman_losses';
 const EXCHANGE_RATE_KEY = 'noman_exchange_rate';
+const USERNAME_KEY = 'noman_username';
+
+function getUsername(): string {
+  if (typeof window === 'undefined') return 'Unknown';
+  return localStorage.getItem(USERNAME_KEY) || 'Unknown';
+}
 
 // سعر صرف دولار افتراضي
 export const DEFAULT_USD_TO_SYP = 14000;
@@ -214,28 +220,6 @@ export function useStore() {
   );
   const [isLoaded, setIsLoaded] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-  const [currentUser, setCurrentUser] = useState<{ email: string; id: string } | null>(null);
-  const currentUserRef = useRef<string>('Unknown');
-
-  // Get current user
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const userEmail = user.email?.split('@')[0] || 'Unknown';
-          setCurrentUser({ email: user.email || 'Unknown', id: user.id });
-          currentUserRef.current = userEmail;
-          console.log('User loaded:', userEmail);
-        } else {
-          console.log('No user logged in');
-        }
-      } catch (e) {
-        console.error('Error getting user:', e);
-      }
-    };
-    getUser();
-  }, []);
 
   // فحص حالة الاتصال
   useEffect(() => {
@@ -435,7 +419,7 @@ export function useStore() {
         sellingPriceUSD,
         category,
         timestamp: formatTimestamp(),
-        performedBy: currentUserRef.current,
+        performedBy: getUsername(),
       };
       const updated = [logEntry, ...prev];
       localStorage.setItem(LOGS_KEY, JSON.stringify(updated));
@@ -461,7 +445,7 @@ export function useStore() {
           action: 'deleted',
           category: product.category,
           timestamp: formatTimestamp(),
-          performedBy: currentUserRef.current,
+          performedBy: getUsername(),
         };
         const updatedLogs = [logEntry, ...prevLogs];
         localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
@@ -501,7 +485,7 @@ export function useStore() {
           profitUSD,
           category: product.category,
           timestamp: formatTimestamp(),
-          performedBy: currentUserRef.current,
+          performedBy: getUsername(),
         };
         const updatedLogs = [logEntry, ...prevLogs];
         localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
@@ -541,7 +525,7 @@ export function useStore() {
           originalPriceUSD: product.originalPriceUSD,
           category: product.category,
           timestamp: formatTimestamp(),
-          performedBy: currentUserRef.current,
+          performedBy: getUsername(),
         };
         const updatedLogs = [logEntry, ...prevLogs];
         localStorage.setItem(LOGS_KEY, JSON.stringify(updatedLogs));
@@ -576,7 +560,6 @@ export function useStore() {
     exchangeRate,
     isLoaded,
     isOnline,
-    currentUser,
     addProduct,
     deleteProduct,
     sellProduct,
