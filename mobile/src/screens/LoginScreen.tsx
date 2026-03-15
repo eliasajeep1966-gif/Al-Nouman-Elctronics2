@@ -19,6 +19,7 @@ import { useFonts, Cairo_700Bold } from '@expo-google-fonts/cairo';
 
 interface LoginScreenProps {
   onLoginSuccess: (userId: string, email: string) => void;
+  onNavigateToSignUp: () => void;
 }
 
 const backgroundImage = require('../../assets/background.png');
