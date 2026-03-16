@@ -296,7 +296,7 @@ export default function ProductListScreen({
     Alert.prompt(
       'شهر جديد',
       'أدخل الشهر الجديد (格式: YYYY-MM, مثال: 2026-04)',
-      (input) => {
+      (input: string) => {
         if (input && /^\d{4}-\d{2}$/.test(input)) {
           setSelectedMonth(input);
         } else {
