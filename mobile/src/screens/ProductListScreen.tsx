@@ -460,18 +460,34 @@ export default function ProductListScreen({
         )}
       </View>
 
-      {/* Tabs */}
-      <View style={[styles.tabsContainer, { backgroundColor: theme.card }]}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.id}
-            style={[styles.tab, activeTab === tab.id && styles.tabActive, activeTab === tab.id && { backgroundColor: tab.id === 'parts' ? '#fed7aa' : tab.id === 'tools' ? '#c7d2fe' : tab.id === 'profits' ? '#a7f3d0' : '#e9d5ff' }]}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <Text style={styles.tabIcon}>{tab.icon}</Text>
-            <Text style={[styles.tabLabel, { color: activeTab === tab.id ? theme.text : theme.textMuted }]}>{tab.label}</Text>
-          </TouchableOpacity>
-        ))}
+      {/* Floating Buttons - Gold Add Button in Middle */}
+      <View style={styles.floatingButtonsContainer}>
+        {/* Tools Floating Button at Bottom */}
+        <TouchableOpacity 
+          style={[styles.toolsFloatingBtn, { backgroundColor: COLORS.blue }} 
+          ]} 
+          onPress={() => setActiveTab('tools')}
+        >
+          <Text style={styles.toolsFloatingBtnIcon}>🖥️</Text>
+          <Text style={styles.toolsFloatingBtnText}>الأدوات</Text>
+        </TouchableOpacity>
+        
+        {/* Gold Floating Add Button - Between Profits and Tools */}
+        <TouchableOpacity 
+          style={styles.goldFloatingBtn} 
+          onPress={() => navigation.navigate('AddProduct', { category: activeTab === 'parts' ? 'parts' : 'tools' })}
+        >
+          <Text style={styles.goldFloatingBtnText}>+</Text>
+        </TouchableOpacity>
+        
+        {/* Profits Floating Button */}
+        <TouchableOpacity 
+          style={[styles.profitsFloatingBtn, { backgroundColor: '#10b981' }]} 
+          onPress={() => setActiveTab('profits')}
+        >
+          <Text style={styles.profitsFloatingBtnIcon}>📊</Text>
+          <Text style={styles.profitsFloatingBtnText}>الأرباح</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Parts/Tools Content */}
