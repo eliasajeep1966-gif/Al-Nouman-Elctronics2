@@ -91,7 +91,10 @@ export default function ProductListScreen({
 		<BlurView intensity={30} tint="dark" style={styles.glassCard}>
 		  <View style={styles.cardHeader}>
 			<Text style={styles.productName}>{item.name}</Text>
-			<View style={[styles.stockBadge, item.quantity <= 3 ? styles.stockLow : styles.stockOk]}>
+			<View style={[styles.stockBadge, 
+			  item.quantity > 5 ? styles.stockOk : 
+			  item.quantity >= 2 ? styles.stockMedium : styles.stockLow
+			]}>
 			  <Text style={styles.stockText}>{item.quantity} قطعة</Text>
 			</View>
 		  </View>
@@ -313,8 +316,9 @@ const styles = StyleSheet.create({
 	alignItems: 'center',
   },
   stockBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  stockOk: { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
-  stockLow: { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
+  stockOk: { backgroundColor: 'rgba(34, 197, 94, 0.2)' }, // لأكثر من 5 قطع
+  stockMedium: { backgroundColor: 'rgba(245, 158, 11, 0.2)' }, // من 2 إلى 5 قطع
+  stockLow: { backgroundColor: 'rgba(239, 68, 68, 0.2)' }, // أقل من 2 قطع
   stockText: { color: '#fff', fontSize: 12 },
   priceRow: { flexDirection: 'row-reverse', gap: 8 },
   priceBox: {
