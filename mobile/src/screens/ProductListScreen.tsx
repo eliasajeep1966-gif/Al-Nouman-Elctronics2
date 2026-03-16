@@ -48,6 +48,7 @@ type Props = {
 const tabs: { id: TabId; label: string; icon: string }[] = [
   { id: 'parts', label: 'قطع الغيار', icon: '⚙️' },
   { id: 'tools', label: 'الأدوات', icon: '🖥️' },
+  { id: 'special', label: '', icon: '+' }, // Special button for adding products
   { id: 'profits', label: 'الأرباح', icon: '📊' },
   { id: 'log', label: 'السجل', icon: '📋' },
 ];
