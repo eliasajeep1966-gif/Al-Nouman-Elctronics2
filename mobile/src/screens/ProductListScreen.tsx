@@ -5,7 +5,6 @@ import {
   FlatList, 
   TouchableOpacity, 
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TextInput,
   Alert,
@@ -13,10 +12,16 @@ import {
   Modal,
   Switch,
   ScrollView,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+  Image,
+  ImageBackground,
+}
+from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Product, TabId, LogEntry, LossEntry } from '../types';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+
 
 type RootStackParamList = {
   ProductList: undefined;
@@ -53,20 +58,31 @@ const tabs: { id: TabId; label: string; icon: string }[] = [
   { id: 'log', label: 'السجل', icon: '📋' },
 ];
 
-// Dark Blue & Black Theme with Gold Accents
+// ألوان الموقع الأساسية - Blue & Gold Theme
+// --- لوحة الألوان الجديدة بناءً على رؤيتك يا إيلي (النسخة الآمنة) ---
 const COLORS = {
-  gradientStart: '#0A192F',
-  gradientEnd: '#000000',
-  cardBg: 'rgba(20, 30, 55, 0.85)',
-  cardBorder: 'rgba(212, 175, 55, 0.2)',
+  // الألوان الأساسية الجديدة
+  blue: '#001a63',         // الأزرق الداكن
+  blueLight: '#3b82f6',      // الأزرق الفاتح
+  blueLighter: '#60a5fa',    // الأزرق السماوي (لمربع السعر)
+  blueDark: '#1e3a8a',        // الأزرق الداكن جداً
+  gold: '#D4AF37',           // الذهبي
+  goldLight: '#c2aa49',
+  goldDark: '#b8860b',
   white: '#ffffff',
-  gold: '#D4AF37',
-  goldLight: '#F5D042',
-  blueMuted: '#94A3B8',
-  green: '#10B981',
-  red: '#EF4444',
-  blue: '#3B82F6',
+
+  // الألوان التي سيستخدمها التطبيق
+  background: '#4d739b',      // <<-- خلفية التطبيق أصبحت زرقاء داكنة
+  backgroundDark: '#0a1929', // <<-- خلفية الوضع الليلي أيضاً
+  textDark: '#7061a7',        // <<-- لون النص أصبح أبيض
+  textLight: '#FFFFFF',       // <<-- لون النص أصبح أبيض
+  textMuted: '#9CA3AF',      // <<-- لون النص الثانوي أصبح رمادي فاتح
+  green: '#22c55e',          // <<-- أخضر للربح
+  greenLight: '#22c55e',
+  red: '#ef4444',            // <<-- أحمر للخسارة
+  redLight: '#ef4444',
 };
+
 
 function getMonthLabel(month: string): string {
   if (!month) return '';
@@ -292,6 +308,19 @@ export default function ProductListScreen({
     );
   };
 
+  // Theme colors - Blue & Gold
+  // --- المحرك الجديد الذي يتبع رؤية إيلي ---
+const theme = {
+  bg: 'transparent', // <<-- شفاف ليظهر الخلفية التي ستختارها
+  card: 'transparent', // <<-- شفاف ليظهر تأثير الزجاج
+  text: COLORS.textLight,
+  textMuted: COLORS.textMuted,
+  border: 'rgba(212, 175, 55, 0.3)',
+  accent: COLORS.gold,
+  gold: COLORS.gold,
+};
+
+
   const renderProduct = ({ item }: { item: Product }) => {
     const profit = item.sellingPrice - item.originalPrice;
     const profitPercent = item.originalPrice > 0 ? ((profit / item.originalPrice) * 100).toFixed(1) : '0';
@@ -303,13 +332,19 @@ export default function ProductListScreen({
 
     return (
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.card }, isOutOfStock && styles.cardOutOfStock]}
         onPress={() => navigation.navigate('ProductDetails', { product: item })}
       >
+        <BlurView
+  style={styles.glassEffect} // <<-- سنضيف هذا الستايل الجديد
+  intensity={60}
+  tint="dark"
+>
+
         <View style={styles.cardHeader}>
           <View style={styles.cardInfo}>
-            <Text style={styles.productName}>{item.name}</Text>
-            <Text style={styles.productDate}>{item.createdAt}</Text>
+            <Text style={[styles.productName, { color: theme.text }]}>{item.name}</Text>
+            <Text style={[styles.productDate, { color: theme.textMuted }]}>{item.createdAt}</Text>
           </View>
           <View style={[styles.stockBadge, isOutOfStock && styles.stockOut, isLowStock && styles.stockLow, !isOutOfStock && !isLowStock && styles.stockOk]}>
             <Text style={[styles.stockText, isOutOfStock && styles.stockTextOut, isLowStock && styles.stockTextLow]}>
@@ -318,15 +353,15 @@ export default function ProductListScreen({
           </View>
         </View>
         <View style={styles.priceRow}>
-          <View style={styles.priceBox}>
-            <Text style={styles.priceLabel}>الأصلي/قطعة</Text>
-            <Text style={styles.priceUSD}>${originalUSD.toFixed(2)}</Text>
-            <Text style={styles.priceSYP}>{item.originalPrice.toLocaleString('en-US')} ل.س</Text>
+          <View style={[styles.priceBox, { backgroundColor: isDarkMode ? '#334155' : '#f1f5f9' }]}>
+            <Text style={[styles.priceLabel, { color: theme.textMuted }]}>الأصلي/قطعة</Text>
+            <Text style={[styles.priceUSD, { color: theme.text }]}>${originalUSD.toFixed(2)}</Text>
+            <Text style={[styles.priceSYP, { color: theme.textMuted }]}>{item.originalPrice.toLocaleString('en-US')} ل.س</Text>
           </View>
           <View style={[styles.priceBox, { backgroundColor: COLORS.blue }]}>
-            <Text style={styles.priceLabelWhite}>سعر البيع</Text>
-            <Text style={styles.priceUSDWhite}>${sellingUSD.toFixed(2)}</Text>
-            <Text style={styles.priceSYPWhite}>{item.sellingPrice.toLocaleString('en-US')} ل.س</Text>
+            <Text style={[styles.priceLabelWhite]}>سعر البيع</Text>
+            <Text style={[styles.priceUSDWhite]}>${sellingUSD.toFixed(2)}</Text>
+            <Text style={[styles.priceSYPWhite]}>{item.sellingPrice.toLocaleString('en-US')} ل.س</Text>
           </View>
           <View style={[styles.priceBox, profit >= 0 ? styles.profitBox : styles.lossBox]}>
             <Text style={[styles.priceLabel, { color: profit >= 0 ? COLORS.green : COLORS.red }]}>الربح</Text>
@@ -336,6 +371,8 @@ export default function ProductListScreen({
             <Text style={[styles.priceSYP, { color: profit >= 0 ? COLORS.green : COLORS.red }]}>{profitPercent}%</Text>
           </View>
         </View>
+        </BlurView>
+
       </TouchableOpacity>
     );
   };
@@ -367,22 +404,22 @@ export default function ProductListScreen({
           <View style={styles.logHeaderTop}>
             <Text style={[styles.logAction, { color: colors.text }]}>{actionLabels[item.action] || item.action}</Text>
             {item.category && (
-              <View style={styles.categoryBadge}>
+              <View style={[styles.categoryBadge, { backgroundColor: isDarkMode ? '#334155' : '#fff' }]}>
                 <Text style={[styles.categoryText, { color: item.category === 'parts' ? '#f97316' : '#6366f1' }]}>
                   {categoryLabels[item.category]}
                 </Text>
               </View>
             )}
             {item.performedBy && (
-              <View style={styles.userBadge}>
-                <Text style={styles.userBadgeText}>@{item.performedBy.split('@')[0]}</Text>
+              <View style={[styles.userBadge, { backgroundColor: COLORS.gold }]}>
+                <Text style={[styles.userBadgeText, { color: '#000' }]}>@{item.performedBy.split('@')[0]}</Text>
               </View>
             )}
           </View>
           <Text style={styles.logTime}>{item.timestamp}</Text>
         </View>
-        <Text style={styles.logProduct}>{item.productName}</Text>
-        {item.quantity && <Text style={styles.logQty}>الكمية: {item.quantity}</Text>}
+        <Text style={[styles.logProduct, { color: '#4f46e5' }]}>{item.productName}</Text>
+        {item.quantity && <Text style={[styles.logQty, { color: theme.textMuted }]}>الكمية: {item.quantity}</Text>}
         {item.profit != null && item.profit > 0 && (
           <Text style={[styles.logProfit, { color: COLORS.green }]}>💵 ربح: {(item.profit || 0).toLocaleString('en-US')} ل.س</Text>
         )}
@@ -395,401 +432,532 @@ export default function ProductListScreen({
 
   const fmt = (n: number) => n.toLocaleString('en-US');
   const fmtUSD = (n: number) => `$${(n / exchangeRate).toFixed(2)}`;
+ return (
+  <ImageBackground
+    source={require('../../assets/background.png')} // <<-- صورتك
+    style={{flex: 1}}
+    resizeMode="cover"
+  >
+    {/* ===== الطبقة الجديدة تبدأ هنا ===== */}
+    <View style={{
+      ...StyleSheet.absoluteFillObject, // <<-- اجعلها تملأ الشاشة
+      backgroundColor: 'rgba(0, 0, 0, 0.6)' // <<-- لون أسود بشفافية 60%
+    }} />
+    {/* ===== الطبقة الجديدة تنتهي هنا ===== */}
+<SafeAreaView 
+  style={{ flex: 1, backgroundColor: 'transparent' }}
+  edges={['right', 'bottom', 'left']} // <<-- هذا هو السطر الجديد
+>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.blueDark} />
+      
+      {/* --- 2. الترويسة المتدرجة --- */}
+      <LinearGradient
+        style={styles.header}
+        colors={['#1a1a96', '#02020c']}
+        start={{ x: 0, y: 0 ,}}
+        end={{ x: 1, y: 0 }}
+      >
+        {/* --- كل محتوى الترويسة يجب أن يكون هنا بالداخل --- */}
 
-  return (
-    <LinearGradient
-      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" />
-        
-        {/* Header */}
-        <View style={styles.header}>
-          {/* Top Section */}
-          <View style={styles.headerTop}>
-            <View style={styles.userSection}>
-              <View style={styles.userAvatar}>
-                <Text style={styles.userAvatarText}>👤</Text>
-              </View>
-              <View style={styles.userInfo}>
-                <Text style={styles.userGreeting}>Hi, {username || 'Elias'}</Text>
-                <Text style={styles.userStatus}>{isOnline ? 'متصل' : 'غير متصل'}</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.settingsButton} onPress={() => setShowSettings(true)}>
-              <Text style={styles.settingsButtonText}>⚙️</Text>
-            </TouchableOpacity>
-          </View>
+        {/* الجزء العلوي: اللوغو والعنوان */}
+        <Image 
+          source={require('../../assets/logo.png')}
+          style={styles.headerLogo}
+        />
+        <Text style={styles.headerTitle}>إلكترونيات النعمان</Text>
+        <Text style={styles.headerSubtitle}>Al-Nouman Electronics</Text>
 
-          {/* Balance Section */}
-          <View style={styles.balanceSection}>
-            <Text style={styles.balanceLabel}>Total Balance</Text>
-            <Text style={styles.balanceAmount}>${totalProfitUSD.toFixed(0)} USD</Text>
-            <Text style={[styles.balanceChange, { color: totalProfit >= 0 ? COLORS.green : COLORS.red }]}>
-              {totalProfit >= 0 ? '+' : ''}{totalProfit.toLocaleString('en-US')} ل.س
-            </Text>
-          </View>
-
-          {/* Exchange Rate */}
-          <TouchableOpacity style={styles.exchangeButton} onPress={() => { setRateInput(exchangeRate.toString()); setEditingRate(true); }}>
-            <Text style={styles.exchangeButtonText}>💵 {exchangeRate.toLocaleString('en-US')} ل.س/$</Text>
+        {/* حاوية الزاوية اليمنى */}
+        <View style={styles.topRightContainer}>
+          <TouchableOpacity style={styles.settingsBtnMain} onPress={() => setShowSettings(true)}>
+            <Text style={styles.settingsBtnMainText}>⚙️</Text>
           </TouchableOpacity>
-
-          {editingRate && (
-            <View style={styles.rateEdit}>
-              <TextInput style={styles.rateInput} value={rateInput} onChangeText={setRateInput} keyboardType="numeric" placeholder="سعر الصرف" autoFocus />
-              <TouchableOpacity style={styles.rateSaveButton} onPress={handleRateSubmit}><Text style={styles.rateSaveText}>✓</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.rateCancelButton} onPress={() => setEditingRate(false)}><Text style={styles.rateCancelText}>✕</Text></TouchableOpacity>
+          {username && (
+            <View style={styles.usernameBadge}>
+              <Text style={styles.usernameText}>@{username}</Text>
             </View>
           )}
-        </View>
-
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[styles.tab, activeTab === tab.id && styles.tabActive]}
-              onPress={() => setActiveTab(tab.id)}
-            >
-              <Text style={styles.tabIcon}>{tab.icon}</Text>
-              <Text style={[styles.tabLabel, activeTab === tab.id && styles.tabLabelActive]}>{tab.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Parts/Tools Content */}
-        {(activeTab === 'parts' || activeTab === 'tools') && (
-          <>
-            <View style={styles.statsBar}>
-              <View style={styles.statItem}><Text style={styles.statLabel}>المنتجات</Text><Text style={styles.statValue}>{totalProducts}</Text></View>
-              <View style={styles.statItem}><Text style={styles.statLabel}>إجمالي القطع</Text><Text style={styles.statValue}>{totalItems}</Text></View>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>الربح المتوقع</Text>
-                <Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed]}>${totalProfitUSD.toFixed(0)}</Text>
-                <Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed, { fontSize: 12 }]}>{totalProfit.toLocaleString('en-US')} ل.س</Text>
-              </View>
-            </View>
-
-            {showBalance && (
-              <View style={styles.balanceCard}>
-                <View style={styles.balanceHeader}><Text style={styles.balanceTitle}>💰 الرصيد</Text><TouchableOpacity onPress={() => setShowBalance(false)}><Text style={styles.balanceClose}>✕</Text></TouchableOpacity></View>
-                <View style={styles.balanceRow}>
-                  <View style={styles.balanceItem}><Text style={styles.balanceLabel}>دولار</Text><Text style={styles.balanceValue}>${totalCostUSD.toFixed(2)}</Text></View>
-                  <View style={styles.balanceItem}><Text style={styles.balanceLabel}>ليرة</Text><Text style={styles.balanceValue}>{totalCost.toLocaleString('en-US')} ل.س</Text></View>
-                </View>
-              </View>
-            )}
-
-            <View style={styles.searchRow}>
-              <View style={styles.searchBox}>
-                <Text style={styles.searchIcon}>🔍</Text>
-                <TextInput style={styles.searchInput} value={search} onChangeText={setSearch} placeholder={`البحث...`} placeholderTextColor={COLORS.blueMuted} />
-              </View>
-              <TouchableOpacity style={styles.balanceToggle} onPress={() => setShowFilters(!showFilters)}>
-                <Text style={styles.balanceToggleText}>⚙️</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.balanceToggle} onPress={() => setShowBalance(!showBalance)}><Text style={styles.balanceToggleText}>💰</Text></TouchableOpacity>
-            </View>
-
-            {showFilters && (
-              <View style={styles.filtersContainer}>
-                <Text style={styles.filterTitle}>فلترة متقدمة:</Text>
-                <View style={styles.filterRow}>
-                  <TextInput style={styles.filterInput} value={filterMinPrice} onChangeText={setFilterMinPrice} placeholder="السعر من (ل.س)" placeholderTextColor={COLORS.blueMuted} keyboardType="numeric" />
-                  <TextInput style={styles.filterInput} value={filterMaxPrice} onChangeText={setFilterMaxPrice} placeholder="السعر إلى (ل.س)" placeholderTextColor={COLORS.blueMuted} keyboardType="numeric" />
-                </View>
-                <View style={styles.filterRow}>
-                  <TextInput style={styles.filterInput} value={filterMinQuantity} onChangeText={setFilterMinQuantity} placeholder="الكمية من" placeholderTextColor={COLORS.blueMuted} keyboardType="numeric" />
-                  <TextInput style={styles.filterInput} value={filterMaxQuantity} onChangeText={setFilterMaxQuantity} placeholder="الكمية إلى" placeholderTextColor={COLORS.blueMuted} keyboardType="numeric" />
-                </View>
-                <TouchableOpacity style={styles.clearFiltersBtn} onPress={() => { setFilterMinPrice(''); setFilterMaxPrice(''); setFilterMinQuantity(''); setFilterMaxQuantity(''); }}>
-                  <Text style={styles.clearFiltersText}>مسح الفلاتر</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {filteredProducts.length === 0 ? (
-              <View style={styles.emptyContainer}><Text style={styles.emptyText}>لا توجد منتجات</Text></View>
-            ) : (
-              <FlatList data={filteredProducts} renderItem={renderProduct} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false} />
-            )}
-
-            <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddProduct', { category: activeTab === 'parts' ? 'parts' : 'tools' })}>
-              <Text style={styles.fabText}>+</Text>
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Profits Tab - Monthly Details */}
-        {activeTab === 'profits' && (
-          <ScrollView style={styles.profitsContainer}>
-            {/* Month Selector */}
-            <View style={styles.monthSelector}>
-              <View style={styles.monthSelectorRow}>
-                <Text style={styles.monthLabel}>الشهر:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthsScroll}>
-                  {availableMonths.map(month => (
-                    <TouchableOpacity key={month} style={[styles.monthBtn, selectedMonth === month && styles.monthBtnActive]} onPress={() => setSelectedMonth(month)}>
-                      <Text style={[styles.monthBtnText, selectedMonth === month && styles.monthBtnTextActive]}>{getMonthLabel(month)}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-
-            {/* Parts Profit */}
-            <View style={styles.profitCard}>
-              <View style={styles.profitCardHeader}><Text style={styles.profitCardIcon}>⚙️</Text><Text style={styles.profitCardTitle}>صافي أرباح قطع الغيار</Text></View>
-              <View style={styles.profitGrid}>
-                <View style={[styles.profitGridItem, { backgroundColor: '#dcfce7' }]}><Text style={[styles.profitGridLabel, { color: '#16a34a' }]}>الأرباح</Text><Text style={[styles.profitGridValue, { color: '#16a34a' }]}>{fmt(monthlyData.partsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#16a34a' }]}>{fmtUSD(monthlyData.partsProfit)}</Text></View>
-                <View style={[styles.profitGridItem, { backgroundColor: '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: '#dc2626' }]}>الخسائر</Text><Text style={[styles.profitGridValue, { color: '#dc2626' }]}>{fmt(monthlyData.totalPartsLoss)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#dc2626' }]}>{fmtUSD(monthlyData.totalPartsLoss)}</Text></View>
-                <View style={[styles.profitGridItem, { backgroundColor: monthlyData.netPartsProfit >= 0 ? '#dbeafe' : '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: monthlyData.netPartsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>الصافي</Text><Text style={[styles.profitGridValue, { color: monthlyData.netPartsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmt(monthlyData.netPartsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: monthlyData.netPartsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmtUSD(monthlyData.netPartsProfit)}</Text></View>
-              </View>
-            </View>
-
-            {/* Tools Profit */}
-            <View style={styles.profitCard}>
-              <View style={styles.profitCardHeader}><Text style={styles.profitCardIcon}>🖥️</Text><Text style={styles.profitCardTitle}>صافي أرباح الأدوات</Text></View>
-              <View style={styles.profitGrid}>
-                <View style={[styles.profitGridItem, { backgroundColor: '#dcfce7' }]}><Text style={[styles.profitGridLabel, { color: '#16a34a' }]}>الأرباح</Text><Text style={[styles.profitGridValue, { color: '#16a34a' }]}>{fmt(monthlyData.toolsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#16a34a' }]}>{fmtUSD(monthlyData.toolsProfit)}</Text></View>
-                <View style={[styles.profitGridItem, { backgroundColor: '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: '#dc2626' }]}>الخسائر</Text><Text style={[styles.profitGridValue, { color: '#dc2626' }]}>{fmt(monthlyData.totalToolsLoss)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#dc2626' }]}>{fmtUSD(monthlyData.totalToolsLoss)}</Text></View>
-                <View style={[styles.profitGridItem, { backgroundColor: monthlyData.netToolsProfit >= 0 ? '#dbeafe' : '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: monthlyData.netToolsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>الصافي</Text><Text style={[styles.profitGridValue, { color: monthlyData.netToolsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmt(monthlyData.netToolsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: monthlyData.netToolsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmtUSD(monthlyData.netToolsProfit)}</Text></View>
-              </View>
-            </View>
-
-            {/* Total Net */}
-            <View style={[styles.netProfitCard, { backgroundColor: monthlyData.totalNet >= 0 ? '#10b981' : '#dc2626' }]}>
-              <Text style={styles.netProfitTitle}>📊 المجموع الكلي - {getMonthLabel(selectedMonth)}</Text>
-              <View style={styles.netProfitRow}>
-                <View style={styles.netProfitItem}><Text style={styles.netProfitLabel}>الليرة</Text><Text style={styles.netProfitValue}>{fmt(monthlyData.totalNet)} ل.س</Text></View>
-                <View style={styles.netProfitItem}><Text style={styles.netProfitLabel}>الدولار</Text><Text style={styles.netProfitValue}>{fmtUSD(monthlyData.totalNet)}</Text></View>
-              </View>
-              <Text style={styles.netProfitCount}>عدد المبيعات: {monthlyData.soldCount}</Text>
-            </View>
-          </ScrollView>
-        )}
-
-        {/* Log Tab */}
-        {activeTab === 'log' && (
-          <FlatList data={logs} renderItem={renderLogItem} keyExtractor={(item) => item.id} contentContainerStyle={styles.logList} showsVerticalScrollIndicator={false} ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>لا يوجد سجل</Text></View>} />
-        )}
-
-        {/* Footer with BY ELIAS AJEEB */}
-        <View style={styles.footer}>
-          <View style={styles.footerContent}>
-            <Text style={styles.footerBrand}>BY ELIAS AJEEP</Text>
-            <View style={styles.footerDecor}>
-              <View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} />
-            </View>
-            <Text style={styles.footerTitle}>إلكترونيات النعمان</Text>
+          <View style={[styles.onlineIndicator, { backgroundColor: isOnline ? '#22c55e' : '#ef4444' }]}>
+            <Text style={styles.onlineIndicatorText}>{isOnline ? 'متصل' : 'غير متصل'}</Text>
           </View>
         </View>
 
-        {/* Settings Modal */}
-        <Modal visible={showSettings} animationType="slide" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>⚙️ الإعدادات</Text>
-                <TouchableOpacity onPress={() => setShowSettings(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
-              </View>
+        <TouchableOpacity style={styles.rateButton} onPress={() => { setRateInput(exchangeRate.toString()); setEditingRate(true); }}>
+          <Text style={styles.rateButtonText}>💵   {exchangeRate.toLocaleString('en-US')} </Text>
+        </TouchableOpacity>
 
-              {/* Dark Mode Toggle */}
-              <View style={styles.settingRow}>
-                <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>🌙 الوضع الليلي</Text>
-                  <Text style={styles.settingDesc}>تبديل بين الوضع الفاتح والداكن</Text>
-                </View>
-                <Switch value={isDarkMode} onValueChange={onToggleDarkMode} trackColor={{ false: '#e2e8f0', true: '#6366f1' }} thumbColor="#ffffff" />
-              </View>
+        {/* حقل تعديل سعر الصرف (يظهر عند الضغط على الزر) */}
+        {editingRate && (
+          <View style={styles.rateEdit}>
+            <TextInput style={styles.rateInput} value={rateInput} onChangeText={setRateInput} keyboardType="numeric" placeholder="سعر الصرف" autoFocus />
+            <TouchableOpacity style={styles.rateSaveButton} onPress={handleRateSubmit}><Text style={styles.rateSaveText}>✓</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.rateCancelButton} onPress={() => setEditingRate(false)}><Text style={styles.rateCancelText}>✕</Text></TouchableOpacity>
+          </View>
+        )}
 
-              {/* Export */}
-              <TouchableOpacity style={styles.settingBtn} onPress={() => { handleShare(); setShowSettings(false); }}>
-                <Text style={styles.settingBtnText}>📤 تصدير ومشاركة البيانات</Text>
-              </TouchableOpacity>
+      </LinearGradient>
 
-              {/* Import */}
-              <TouchableOpacity style={styles.settingBtn} onPress={() => {
-                setShowSettings(false);
-                Alert.prompt('استيراد البيانات', 'الصق بيانات JSON', (text) => {
-                  if (text && onImportData(text)) {
-                    Alert.alert('✅', 'تم استيراد البيانات بنجاح');
-                  } else if (text) {
-                    Alert.alert('❌', 'فشل استيراد البيانات');
-                  }
-                });
-              }}>
-                <Text style={styles.settingBtnText}>📥 استيراد البيانات</Text>
-              </TouchableOpacity>
+      {/* --- 4. بقية المحتوى تبدأ من هنا (Tabs) --- */}
+      <View style={[styles.tabsContainer, { backgroundColor: theme.card }]}>
+        {/* ... */}
+          </View>
 
-              {/* Clear Data */}
-              <TouchableOpacity style={styles.settingBtn} onPress={() => {
-                Alert.alert('حذف كل البيانات', 'هل أنت متأكد؟', [
-                  { text: 'إلغاء', style: 'cancel' },
-                  { text: 'حذف', style: 'destructive', onPress: () => { onClearAll(); setShowSettings(false); } },
-                ]);
-              }}>
-                <Text style={styles.settingBtnText}>🗑️ حذف كل البيانات</Text>
-              </TouchableOpacity>
 
-              {/* Logout */}
-              <TouchableOpacity style={styles.settingBtn} onPress={() => {
-                Alert.alert('تسجيل خروج', 'هل أنت متأكد من تسجيل الخروج؟', [
-                  { text: 'إلغاء', style: 'cancel' },
-                  { text: 'خروج', style: 'destructive', onPress: () => { onLogout(); } },
-                ]);
-              }}>
-                <Text style={styles.settingBtnText}>🚪 تسجيل خروج</Text>
-              </TouchableOpacity>
+      {/* Tabs */}
+      <View style={[styles.tabsContainer, { backgroundColor: theme.card }]}>
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab.id}
+            style={[styles.tab, activeTab === tab.id && styles.tabActive, activeTab === tab.id && { backgroundColor: tab.id === 'parts' ? '#fed7aa' : tab.id === 'tools' ? '#c7d2fe' : tab.id === 'profits' ? '#a7f3d0' : '#e9d5ff' }]}
+            onPress={() => setActiveTab(tab.id)}
+          >
+            <Text style={styles.tabIcon}>{tab.icon}</Text>
+            <Text style={[styles.tabLabel, { color: activeTab === tab.id ? theme.text : theme.textMuted }]}>{tab.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Parts/Tools Content */}
+      {(activeTab === 'parts' || activeTab === 'tools') && (
+        <>
+          <View style={[styles.statsBar, { backgroundColor: theme.card }]}>
+            <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>المنتجات </Text><Text style={[styles.statValue, { color: theme.text }]}>{totalProducts}</Text></View>
+            <View style={styles.statItem}><Text style={[styles.statLabel, { color: theme.textMuted }]}>الكمية </Text><Text style={[styles.statValue, { color: COLORS.blue }]}>{totalItems}</Text></View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, { color: theme.textMuted }]}>الربح المفروض  </Text>
+              <Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed]}>${totalProfitUSD.toFixed(0)}</Text>
+              <Text style={[styles.statValue, totalProfit >= 0 ? styles.statValueGreen : styles.statValueRed, { fontSize: 12 }]}>{totalProfit.toLocaleString('en-US')} ل.س</Text>
             </View>
           </View>
-        </Modal>
-      </SafeAreaView>
-    </LinearGradient>
+
+          {showBalance && (
+            <View style={[styles.balanceCard, { backgroundColor: theme.card }]}>
+              <View style={styles.balanceHeader}><Text style={[styles.balanceTitle, { color: theme.text }]}>💰 الرصيد</Text><TouchableOpacity onPress={() => setShowBalance(false)}><Text style={[styles.balanceClose, { color: theme.textMuted }]}>✕</Text></TouchableOpacity></View>
+              <View style={styles.balanceRow}>
+                <View style={styles.balanceItem}><Text style={[styles.balanceLabel, { color: theme.textMuted }]}>دولار</Text><Text style={[styles.balanceValue, { color: theme.text }]}>${totalCostUSD.toFixed(2)}</Text></View>
+                <View style={styles.balanceItem}><Text style={[styles.balanceLabel, { color: theme.textMuted }]}>ليرة</Text><Text style={[styles.balanceValue, { color: theme.text }]}>{totalCost.toLocaleString('en-US')} ل.س</Text></View>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.searchRow}>
+            <View style={[styles.searchBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput style={[styles.searchInput, { color: theme.text }]} value={search} onChangeText={setSearch} placeholder={`البحث...`} placeholderTextColor={theme.textMuted} />
+            </View>
+            <TouchableOpacity style={[styles.balanceToggle, { backgroundColor: showFilters ? theme.accent : theme.card }]} onPress={() => setShowFilters(!showFilters)}>
+              <Text style={styles.balanceToggleText}>⚙️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.balanceToggle, { backgroundColor: theme.card }]} onPress={() => setShowBalance(!showBalance)}><Text style={styles.balanceToggleText}>💰</Text></TouchableOpacity>
+          </View>
+
+          {showFilters && (
+            <View style={[styles.filtersContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.filterTitle, { color: theme.text }]}>فلترة متقدمة:</Text>
+              <View style={styles.filterRow}>
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.bg, color: theme.text }]} value={filterMinPrice} onChangeText={setFilterMinPrice} placeholder="السعر من (ل.س)" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.bg, color: theme.text }]} value={filterMaxPrice} onChangeText={setFilterMaxPrice} placeholder="السعر إلى (ل.س)" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+              </View>
+              <View style={styles.filterRow}>
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.bg, color: theme.text }]} value={filterMinQuantity} onChangeText={setFilterMinQuantity} placeholder="الكمية من" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+                <TextInput style={[styles.filterInput, { backgroundColor: theme.bg, color: theme.text }]} value={filterMaxQuantity} onChangeText={setFilterMaxQuantity} placeholder="الكمية إلى" placeholderTextColor={theme.textMuted} keyboardType="numeric" />
+              </View>
+              <TouchableOpacity style={[styles.clearFiltersBtn, { backgroundColor: theme.accent }]} onPress={() => { setFilterMinPrice(''); setFilterMaxPrice(''); setFilterMinQuantity(''); setFilterMaxQuantity(''); }}>
+                <Text style={styles.clearFiltersText}>مسح الفلاتر</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {filteredProducts.length === 0 ? (
+            <View style={styles.emptyContainer}><Text style={[styles.emptyText, { color: theme.textMuted }]}>لا توجد منتجات</Text></View>
+          ) : (
+            <FlatList data={filteredProducts} renderItem={renderProduct} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false} />
+          )}
+
+          <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddProduct', { category: activeTab === 'parts' ? 'parts' : 'tools' })}>
+            <Text style={styles.fabText}>+</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {/* Profits Tab - Monthly Details */}
+      {activeTab === 'profits' && (
+        <ScrollView style={styles.profitsContainer}>
+          {/* Month Selector */}
+          <View style={[styles.monthSelector, { backgroundColor: theme.card }]}>
+            <View style={styles.monthSelectorRow}>
+              <Text style={[styles.monthLabel, { color: theme.text }]}>الشهر:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthsScroll}>
+                {availableMonths.map(month => (
+                  <TouchableOpacity key={month} style={[styles.monthBtn, selectedMonth === month && styles.monthBtnActive]} onPress={() => setSelectedMonth(month)}>
+                    <Text style={[styles.monthBtnText, selectedMonth === month && styles.monthBtnTextActive]}>{getMonthLabel(month)}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+
+          {/* Parts Profit */}
+          <View style={[styles.profitCard, { backgroundColor: theme.card }]}>
+            <View style={styles.profitCardHeader}><Text style={styles.profitCardIcon}>⚙️</Text><Text style={[styles.profitCardTitle, { color: theme.text }]}>صافي أرباح قطع الغيار</Text></View>
+            <View style={styles.profitGrid}>
+              <View style={[styles.profitGridItem, { backgroundColor: '#dcfce7' }]}><Text style={[styles.profitGridLabel, { color: '#16a34a' }]}>الأرباح</Text><Text style={[styles.profitGridValue, { color: '#16a34a' }]}>{fmt(monthlyData.partsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#16a34a' }]}>{fmtUSD(monthlyData.partsProfit)}</Text></View>
+              <View style={[styles.profitGridItem, { backgroundColor: '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: '#dc2626' }]}>الخسائر</Text><Text style={[styles.profitGridValue, { color: '#dc2626' }]}>{fmt(monthlyData.totalPartsLoss)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#dc2626' }]}>{fmtUSD(monthlyData.totalPartsLoss)}</Text></View>
+              <View style={[styles.profitGridItem, { backgroundColor: monthlyData.netPartsProfit >= 0 ? '#dbeafe' : '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: monthlyData.netPartsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>الصافي</Text><Text style={[styles.profitGridValue, { color: monthlyData.netPartsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmt(monthlyData.netPartsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: monthlyData.netPartsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmtUSD(monthlyData.netPartsProfit)}</Text></View>
+            </View>
+          </View>
+
+          {/* Tools Profit */}
+          <View style={[styles.profitCard, { backgroundColor: theme.card }]}>
+            <View style={styles.profitCardHeader}><Text style={styles.profitCardIcon}>🖥️</Text><Text style={[styles.profitCardTitle, { color: theme.text }]}>صافي أرباح الأدوات</Text></View>
+            <View style={styles.profitGrid}>
+              <View style={[styles.profitGridItem, { backgroundColor: '#dcfce7' }]}><Text style={[styles.profitGridLabel, { color: '#16a34a' }]}>الأرباح</Text><Text style={[styles.profitGridValue, { color: '#16a34a' }]}>{fmt(monthlyData.toolsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#16a34a' }]}>{fmtUSD(monthlyData.toolsProfit)}</Text></View>
+              <View style={[styles.profitGridItem, { backgroundColor: '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: '#dc2626' }]}>الخسائر</Text><Text style={[styles.profitGridValue, { color: '#dc2626' }]}>{fmt(monthlyData.totalToolsLoss)} ل.س</Text><Text style={[styles.profitGridUSD, { color: '#dc2626' }]}>{fmtUSD(monthlyData.totalToolsLoss)}</Text></View>
+              <View style={[styles.profitGridItem, { backgroundColor: monthlyData.netToolsProfit >= 0 ? '#dbeafe' : '#fee2e2' }]}><Text style={[styles.profitGridLabel, { color: monthlyData.netToolsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>الصافي</Text><Text style={[styles.profitGridValue, { color: monthlyData.netToolsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmt(monthlyData.netToolsProfit)} ل.س</Text><Text style={[styles.profitGridUSD, { color: monthlyData.netToolsProfit >= 0 ? '#2563eb' : '#dc2626' }]}>{fmtUSD(monthlyData.netToolsProfit)}</Text></View>
+            </View>
+          </View>
+
+          {/* Total Net */}
+          <View style={[styles.netProfitCard, { backgroundColor: monthlyData.totalNet >= 0 ? '#10b981' : '#dc2626' }]}>
+            <Text style={styles.netProfitTitle}>📊 المجموع الكلي - {getMonthLabel(selectedMonth)}</Text>
+            <View style={styles.netProfitRow}>
+              <View style={styles.netProfitItem}><Text style={styles.netProfitLabel}>الليرة</Text><Text style={styles.netProfitValue}>{fmt(monthlyData.totalNet)} ل.س</Text></View>
+              <View style={styles.netProfitItem}><Text style={styles.netProfitLabel}>الدولار</Text><Text style={styles.netProfitValue}>{fmtUSD(monthlyData.totalNet)}</Text></View>
+            </View>
+            <Text style={styles.netProfitCount}>عدد المبيعات: {monthlyData.soldCount}</Text>
+          </View>
+        </ScrollView>
+      )}
+
+      {/* Log Tab */}
+      {activeTab === 'log' && (
+        <FlatList data={logs} renderItem={renderLogItem} keyExtractor={(item) => item.id} contentContainerStyle={styles.logList} showsVerticalScrollIndicator={false} ListEmptyComponent={<View style={styles.emptyContainer}><Text style={[styles.emptyText, { color: theme.textMuted }]}>لا يوجد سجل</Text></View>} />
+      )}
+
+      {/* Footer with BY ELIAS AJEEB */}
+      <View style={[styles.footer, { backgroundColor: COLORS.blueDark }]}>
+        <View style={styles.footerContent}>
+          <Text style={styles.footerBrand}>BY ELIAS AJEEP</Text>
+          <View style={styles.footerDecor}>
+            <View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} /><View style={styles.decorBox} />
+          </View>
+          <Text style={styles.footerTitle}>إلكترونيات النعمان</Text>
+        </View>
+      </View>
+
+      {/* Settings Modal */}
+      <Modal visible={showSettings} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>⚙️ الإعدادات</Text>
+              <TouchableOpacity onPress={() => setShowSettings(false)}><Text style={[styles.modalClose, { color: theme.textMuted }]}>✕</Text></TouchableOpacity>
+            </View>
+
+            {/* Dark Mode Toggle */}
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={[styles.settingLabel, { color: theme.text }]}>🌙 الوضع الليلي</Text>
+                <Text style={[styles.settingDesc, { color: theme.textMuted }]}>تبديل بين الوضع الفاتح والداكن</Text>
+              </View>
+              <Switch value={isDarkMode} onValueChange={onToggleDarkMode} trackColor={{ false: '#e2e8f0', true: '#6366f1' }} thumbColor="#ffffff" />
+            </View>
+
+            {/* Export */}
+            <TouchableOpacity style={[styles.settingBtn, { backgroundColor: '#dbeafe' }]} onPress={() => { handleShare(); setShowSettings(false); }}>
+              <Text style={[styles.settingBtnText, { color: '#2563eb' }]}>📤 تصدير ومشاركة البيانات</Text>
+            </TouchableOpacity>
+
+            {/* Import */}
+            <TouchableOpacity style={[styles.settingBtn, { backgroundColor: '#dcfce7' }]} onPress={() => {
+              setShowSettings(false);
+              Alert.prompt('استيراد البيانات', 'الصق بيانات JSON', (text) => {
+                if (text && onImportData(text)) {
+                  Alert.alert('✅', 'تم استيراد البيانات بنجاح');
+                } else if (text) {
+                  Alert.alert('❌', 'فشل استيراد البيانات');
+                }
+              });
+            }}>
+              <Text style={[styles.settingBtnText, { color: '#16a34a' }]}>📥 استيراد البيانات</Text>
+            </TouchableOpacity>
+
+            {/* Clear Data */}
+            <TouchableOpacity style={[styles.settingBtn, { backgroundColor: '#fee2e2' }]} onPress={() => {
+              Alert.alert('حذف كل البيانات', 'هل أنت متأكد؟', [
+                { text: 'إلغاء', style: 'cancel' },
+                { text: 'حذف', style: 'destructive', onPress: () => { onClearAll(); setShowSettings(false); } },
+              ]);
+            }}>
+              <Text style={[styles.settingBtnText, { color: '#dc2626' }]}>🗑️ حذف كل البيانات</Text>
+            </TouchableOpacity>
+
+            {/* Logout */}
+            <TouchableOpacity style={[styles.settingBtn, { backgroundColor: '#fef3c7' }]} onPress={() => {
+              Alert.alert('تسجيل خروج', 'هل أنت متأكد من تسجيل الخروج؟', [
+                { text: 'إلغاء', style: 'cancel' },
+                { text: 'خروج', style: 'destructive', onPress: () => { onLogout(); } },
+              ]);
+            }}>
+              <Text style={[styles.settingBtnText, { color: '#d97706' }]}>🚪 تسجيل خروج</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+      </ImageBackground>
+
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: 'transparent' },
-  header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  userSection: { flexDirection: 'row', alignItems: 'center' },
-  userAvatar: { width: 48, height: 48, backgroundColor: COLORS.cardBg, borderRadius: 12, borderWidth: 1, borderColor: COLORS.cardBorder, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  userAvatarText: { fontSize: 24 },
-  userInfo: { flex: 1 },
-  userGreeting: { fontSize: 18, fontWeight: 'bold', color: COLORS.white },
-  userStatus: { fontSize: 12, color: COLORS.blueMuted },
-  settingsButton: { width: 44, height: 44, backgroundColor: COLORS.cardBg, borderRadius: 12, borderWidth: 1, borderColor: COLORS.cardBorder, alignItems: 'center', justifyContent: 'center' },
-  settingsButtonText: { fontSize: 20 },
-  balanceSection: { marginBottom: 20 },
-  balanceLabel: { fontSize: 12, color: COLORS.blueMuted, marginBottom: 4 },
-  balanceAmount: { fontSize: 32, fontWeight: 'bold', color: COLORS.white, marginBottom: 4 },
-  balanceChange: { fontSize: 14 },
-  exchangeButton: { backgroundColor: COLORS.cardBg, borderRadius: 12, borderWidth: 1, borderColor: COLORS.cardBorder, padding: 12, alignItems: 'center', marginBottom: 12 },
-  exchangeButtonText: { color: COLORS.white, fontSize: 14 },
-  rateEdit: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  rateInput: { backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, width: 120, textAlign: 'center', color: '#1e293b' },
-  rateSaveButton: { backgroundColor: COLORS.green, borderRadius: 8, padding: 8 },
-  rateSaveText: { color: '#fff', fontWeight: 'bold' },
-  rateCancelButton: { backgroundColor: '#64748b', borderRadius: 8, padding: 8 },
-  rateCancelText: { color: '#fff', fontWeight: 'bold' },
-  tabsContainer: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 12, marginHorizontal: 16, borderRadius: 20, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 16 },
-  tabActive: { backgroundColor: 'rgba(212, 175, 55, 0.2)', borderWidth: 1, borderColor: COLORS.gold },
-  tabIcon: { fontSize: 20, marginBottom: 4 },
-  tabLabel: { fontSize: 11, fontWeight: '600', color: COLORS.blueMuted },
-  tabLabelActive: { color: COLORS.white },
-  statsBar: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, marginHorizontal: 16, marginTop: 12, borderRadius: 16, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  statItem: { alignItems: 'center' },
-  statLabel: { fontSize: 11, color: COLORS.blueMuted, marginBottom: 2 },
-  statValue: { fontSize: 18, fontWeight: 'bold', color: COLORS.white },
-  statValueGreen: { color: COLORS.green },
-  statValueRed: { color: COLORS.red },
-  balanceCard: { marginHorizontal: 16, marginTop: 8, borderRadius: 16, padding: 12, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  balanceTitle: { fontSize: 14, fontWeight: 'bold', color: COLORS.white },
-  balanceClose: { fontSize: 16, color: COLORS.blueMuted },
-  balanceRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  balanceItem: { alignItems: 'center' },
-  balanceValue: { fontSize: 16, fontWeight: 'bold', color: COLORS.white },
-  searchRow: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 12, gap: 8 },
-  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, borderWidth: 1, borderColor: COLORS.cardBorder, backgroundColor: COLORS.cardBg },
-  searchIcon: { fontSize: 16, marginRight: 8, color: COLORS.blueMuted },
-  searchInput: { flex: 1, paddingVertical: 10, fontSize: 14, color: COLORS.white },
-  balanceToggle: { borderRadius: 12, padding: 12, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  balanceToggleText: { fontSize: 18 },
-  filtersContainer: { marginHorizontal: 16, marginTop: 8, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: COLORS.cardBorder, backgroundColor: COLORS.cardBg },
-  filterTitle: { fontSize: 14, fontWeight: '600', color: COLORS.white, marginBottom: 8 },
-  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  filterInput: { flex: 1, padding: 10, borderRadius: 8, fontSize: 14, backgroundColor: 'rgba(255,255,255,0.05)', color: COLORS.white },
-  clearFiltersBtn: { padding: 10, borderRadius: 8, alignItems: 'center', backgroundColor: COLORS.blue },
-  clearFiltersText: { color: '#fff', fontWeight: '600' },
-  list: { padding: 16, paddingBottom: 100 },
-  card: { borderRadius: 20, padding: 14, marginBottom: 12, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  cardInfo: { flex: 1 },
-  productName: { fontSize: 16, fontWeight: 'bold', color: COLORS.white },
-  productDate: { fontSize: 13, marginTop: 2, color: COLORS.blueMuted },
-  stockBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  stockOk: { backgroundColor: 'rgba(16, 185, 129, 0.2)' },
-  stockLow: { backgroundColor: 'rgba(217, 119, 6, 0.2)' },
-  stockOut: { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
-  stockText: { fontSize: 12, fontWeight: '600', color: COLORS.white },
-  stockTextLow: { color: '#d97706' },
-  stockTextOut: { color: '#dc2626' },
-  priceRow: { flexDirection: 'row', gap: 8 },
-  priceBox: { flex: 1, borderRadius: 10, padding: 8, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
-  priceLabel: { fontSize: 10, marginBottom: 2, color: COLORS.blueMuted },
-  priceUSD: { fontSize: 14, fontWeight: 'bold', color: COLORS.white },
-  priceSYP: { fontSize: 10, color: COLORS.blueMuted },
-  priceLabelWhite: { fontSize: 10, marginBottom: 2, color: 'rgba(255,255,255,0.8)' },
-  priceUSDWhite: { fontSize: 14, fontWeight: 'bold', color: '#fff' },
-  priceSYPWhite: { fontSize: 10, color: 'rgba(255,255,255,0.8)' },
-  profitBox: { backgroundColor: 'rgba(16, 185, 129, 0.2)' },
-  lossBox: { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  emptyText: { fontSize: 16, fontWeight: '500', color: COLORS.blueMuted },
-  fab: { position: 'absolute', bottom: 90, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.gold, alignItems: 'center', justifyContent: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
-  fabText: { fontSize: 28, color: '#000', fontWeight: '300' },
-  profitsContainer: { flex: 1, padding: 16 },
-  monthSelector: { borderRadius: 16, padding: 12, marginBottom: 12, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  monthSelectorRow: { flexDirection: 'row', alignItems: 'center' },
-  monthLabel: { fontSize: 14, fontWeight: 'bold', color: COLORS.white, marginRight: 8 },
-  monthsScroll: { flex: 1 },
-  monthBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginRight: 8, backgroundColor: 'rgba(255,255,255,0.05)' },
-  monthBtnActive: { backgroundColor: 'rgba(212, 175, 55, 0.3)', borderWidth: 1, borderColor: COLORS.gold },
-  monthBtnText: { fontSize: 12, color: COLORS.blueMuted },
-  monthBtnTextActive: { color: COLORS.white, fontWeight: 'bold' },
-  newMonthBtn: { backgroundColor: '#10b981', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  newMonthBtnText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  profitCard: { borderRadius: 16, padding: 14, marginBottom: 12, backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  profitCardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  profitCardIcon: { fontSize: 24, marginRight: 8 },
-  profitCardTitle: { fontSize: 16, fontWeight: 'bold', color: COLORS.white },
-  profitGrid: { flexDirection: 'row', gap: 8 },
-  profitGridItem: { flex: 1, borderRadius: 10, padding: 10, alignItems: 'center' },
-  profitGridLabel: { fontSize: 11, marginBottom: 4 },
-  profitGridValue: { fontSize: 14, fontWeight: 'bold' },
-  profitGridUSD: { fontSize: 11 },
-  netProfitCard: { borderRadius: 16, padding: 16, marginTop: 8 },
-  netProfitTitle: { fontSize: 16, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 12 },
-  netProfitRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
-  netProfitItem: { alignItems: 'center' },
-  netProfitLabel: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
-  netProfitValue: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
-  netProfitCount: { textAlign: 'center', color: 'rgba(255,255,255,0.8)', fontSize: 12 },
-  logList: { padding: 16, paddingBottom: 100 },
-  logItem: { borderRadius: 12, padding: 12, marginBottom: 8 },
-  logHeader: { marginBottom: 6 },
-  logHeaderTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  logAction: { fontSize: 13, fontWeight: 'bold' },
-  categoryBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.1)' },
-  categoryText: { fontSize: 11, fontWeight: '600' },
-  userBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: COLORS.gold },
-  userBadgeText: { fontSize: 11, fontWeight: '600', color: '#000' },
-  logTime: { fontSize: 12, color: '#94a3b8' },
-  logProduct: { fontSize: 14, fontWeight: '600', color: '#4f46e5', marginBottom: 2 },
-  logQty: { fontSize: 12, color: '#64748b' },
-  logProfit: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  logLoss: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  footer: { paddingVertical: 10, alignItems: 'center' },
-  footerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 16 },
-  footerDecor: { flexDirection: 'row', gap: 8 },
-  decorBox: { width: 16, height: 16, borderRadius: 4, backgroundColor: COLORS.gold },
-  footerTitle: { color: COLORS.white, fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  footerBrand: { fontSize: 14, fontWeight: '600', color: COLORS.gold },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '80%', backgroundColor: COLORS.cardBg, borderWidth: 1, borderColor: COLORS.cardBorder },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.white },
-  modalClose: { fontSize: 20, color: COLORS.blueMuted },
-  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
-  settingInfo: { flex: 1 },
-  settingLabel: { fontSize: 16, fontWeight: '600', color: COLORS.white },
-  settingDesc: { fontSize: 12, marginTop: 2, color: COLORS.blueMuted },
-  settingBtn: { borderRadius: 12, padding: 14, marginTop: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: COLORS.cardBorder },
-  settingBtnText: { fontSize: 14, fontWeight: '600', textAlign: 'center', color: COLORS.white },
+    // --- الأنماط الأساسية ---
+    container: { 
+        flex: 1,
+        // لون الخلفية سيأتي من ImageBackground الذي ستضيفه أنت
+    },
+
+    // --- الترويسة (الربع الفوقاني) ---
+    header: { 
+        padding: 16, 
+        paddingTop: 0, 
+        borderBottomLeftRadius: 24, 
+        borderBottomRightRadius: 24, 
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.72)', // حافة ذهبية خفيفة
+    },
+    headerTitle: { 
+        fontSize: 28, 
+        fontWeight: 'bold', 
+        color: '#D4AF37', // ذهبي
+        marginBottom: 12,
+        fontFamily: 'Cairo', // يمكنك تفعيل هذا لاحقاً
+    },
+
+    // --- بطاقة المنتج ---
+   card: {
+  borderRadius: 16,
+  marginBottom: 12,
+  backgroundColor: 'transparent', // <<-- اجعله شفافاً
+  // احذف أي ألوان أو حواف أخرى من هنا
+},
+
+
+    productName: { 
+        fontSize: 16, 
+        fontWeight: 'bold',
+        color: '#FFFFFF', // أبيض
+    },
+    productDate: { 
+        fontSize: 13, 
+        marginTop: 2,
+        color: '#9CA3AF', // رمادي فاتح
+    },
+
+    // --- مربعات الأسعار ---
+    priceRow: { 
+        flexDirection: 'row', 
+        gap: 8,
+        marginTop: 10,
+    },
+    priceBox: { 
+        flex: 1, 
+        borderRadius: 10, 
+        padding: 8, 
+        alignItems: 'center',
+        backgroundColor: 'rgba(192, 0, 0, 0.25)', // خلفية موحدة داكنة
+    },
+    priceLabel: { 
+        fontSize: 10, 
+        marginBottom: 2,
+        color: '#9CA3AF',
+    },
+    priceUSD: { 
+        fontSize: 14, 
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+    },
+    priceSYP: { 
+        fontSize: 10,
+        color: '#9CA3AF',
+    },
+    
+    // --- سعر البيع (المربع السماوي) ---
+    // ملاحظة: يجب أن تعدل الكود ليستخدم هذا الستايل لمربع سعر البيع
+    priceBoxSelling: {
+        backgroundColor: '#d0ec30', // سماوي
+    },
+    priceLabelWhite: { fontSize: 10, marginBottom: 2, color: 'rgba(0,0,0,0.8)' },
+    priceUSDWhite: { fontSize: 14, fontWeight: 'bold', color: '#000' },
+    priceSYPWhite: { fontSize: 10, color: 'rgba(0,0,0,0.8)' },
+
+    // --- الربح والخسارة ---
+    profitBox: { 
+        backgroundColor: 'rgba(34, 197, 94, 0.15)', // أخضر شفاف
+        borderColor: '#22c55e',
+        borderWidth: 1,
+    },
+    lossBox: { 
+        backgroundColor: 'rgba(239, 68, 68, 0.15)', // أحمر شفاف
+        borderColor: '#ef4444',
+        borderWidth: 1,
+    },
+    statValueGreen: { color: '#22c55e' },
+    statValueRed: { color: '#ef4444' },
+
+    headerSubtitle: {
+  fontSize: 16,
+  color: '#D4AF37', 
+  marginTop: -10, 
+  marginBottom: 10,
+fontFamily: 'Cairo'
+},
+
+
+    // --- بقية الأنماط من الكود الأصلي (مع تعديلات طفيفة للألوان) ---
+    headerIcon: { width: 56, height: 56, backgroundColor: 'rgba(255, 242, 242, 0.1)', borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+    headerIconText: { fontSize: 28 },
+    usernameBadge: { backgroundColor: 'rgba(212, 175, 55, 0.3)', borderRadius: 12, paddingVertical: 4, paddingHorizontal: 12, marginBottom: 8, borderWidth: 1, borderColor: '#d4af37' },
+    usernameText: { color: '#d4af37', fontSize: 17, fontWeight: '600' },
+    onlineIndicator: { borderRadius: 12, paddingVertical: 4, paddingHorizontal: 12, marginBottom: 8 },
+    onlineIndicatorText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+    settingsBtnMain: {   backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 8, marginBottom: 8 },
+    settingsBtnMainText: { fontSize: 20 },
+    rateButton: { backgroundColor: 'rgba(255, 242, 242, 0.1)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 16, marginBottom: 8 },
+    rateButtonText: { color: '#0c8f12', fontSize: 14 },
+    rateEdit: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+    rateInput: { backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, width: 120, textAlign: 'center', color: '#1e293b' },
+    rateSaveButton: { backgroundColor: '#10b981', borderRadius: 8, padding: 8 },
+    rateSaveText: { color: '#fff', fontWeight: 'bold' },
+    rateCancelButton: { backgroundColor: '#64748b', borderRadius: 8, padding: 8 },
+    rateCancelText: { color: '#fff', fontWeight: 'bold' },
+tabsContainer: {
+  flexDirection: 'row',
+  padding: 0,
+  marginHorizontal: 16, // <<-- أضفنا مسافة من اليمين واليسار
+  borderRadius: 15,      // <<-- حواف دائرية جميلة
+        // <<-- لرفعه قليلاً ليدخل في الترويسة
+  
+  // --- وصفة الزجاج ---
+  backgroundColor: 'rgba(169, 174, 187, 0.85)', // <<-- خلفية داكنة وشفافة
+  borderWidth: 1,
+  borderColor: 'rgba(212, 175, 55, 0.3)', // <<-- حافة ذهبية شفافة
+},
+    tab: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 12, marginHorizontal: 2 },
+    tabActive: {},
+    tabIcon: { fontSize: 20 },
+    tabLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+    statsBar: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, marginHorizontal: 16, marginTop: 12, borderRadius: 16, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    statItem: { alignItems: 'center' },
+    statLabel: { fontSize: 11, marginBottom: 2, color: '#D4AF37' },
+    statValue: { fontSize: 18, fontWeight: 'bold', color: '#D4AF37' },
+    statValuePrimary: { color: '#312e81' },
+    balanceCard: { marginHorizontal: 16, marginTop: 8, borderRadius: 16, padding: 12, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    balanceTitle: { fontSize: 14, fontWeight: 'bold', color: '#FFFFFF' },
+    balanceClose: { fontSize: 16, color: '#9CA3AF' },
+    balanceRow: { flexDirection: 'row', justifyContent: 'space-around' },
+    balanceItem: { alignItems: 'center' },
+    balanceLabel: { fontSize: 12, color: '#9CA3AF' },
+    balanceValue: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF' },
+    searchRow: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 12, gap: 8 },
+    searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, borderWidth: 1, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(212, 175, 55, 0.3)' },
+    searchIcon: { fontSize: 16, marginRight: 8, color: '#9CA3AF' },
+    searchInput: { flex: 1, paddingVertical: 10, fontSize: 14, color: '#FFFFFF' },
+    balanceToggle: { borderRadius: 12, padding: 12, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    balanceToggleText: { fontSize: 18 },
+    filtersContainer: { marginHorizontal: 16, marginTop: 8, padding: 12, borderRadius: 12, borderWidth: 1, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(212, 175, 55, 0.3)' },
+    filterTitle: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#FFFFFF' },
+    filterRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+    filterInput: { flex: 1, padding: 10, borderRadius: 8, fontSize: 14, backgroundColor: 'rgba(0,0,0,0.2)', color: '#FFFFFF' },
+    clearFiltersBtn: { padding: 10, borderRadius: 8, alignItems: 'center', backgroundColor: '#D4AF37' },
+    clearFiltersText: { color: '#000', fontWeight: '600' },
+    list: { padding: 16, paddingBottom: 100 },
+    cardOutOfStock: { opacity: 0.6 },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+    cardInfo: { flex: 1 },
+    stockBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+    stockOk: { backgroundColor: 'rgba(34, 197, 94, 0.2)' },
+    stockLow: { backgroundColor: 'rgba(245, 158, 11, 0.2)' },
+    stockOut: { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
+    stockText: { fontSize: 12, fontWeight: '600', color: '#22c55e' },
+    stockTextLow: { color: '#f59e0b' },
+    stockTextOut: { color: '#ef4444' },
+    emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+    emptyText: { fontSize: 16, fontWeight: '500', color: '#9CA3AF' },
+    fab: { position: 'absolute', bottom: 90, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#D4AF37', alignItems: 'center', justifyContent: 'center', elevation: 5, shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
+    fabText: { fontSize: 28, color: '#000', fontWeight: '300' },
+    profitsContainer: { flex: 1, padding: 16 },
+    monthSelector: { borderRadius: 16, padding: 12, marginBottom: 12, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    monthSelectorRow: { flexDirection: 'row', alignItems: 'center' },
+    monthLabel: { fontSize: 14, fontWeight: 'bold', marginRight: 8, color: '#FFFFFF' },
+    monthsScroll: { flex: 1 },
+    monthBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginRight: 8, backgroundColor: 'rgba(0,0,0,0.2)' },
+    monthBtnActive: { backgroundColor: '#D4AF37' },
+    monthBtnText: { fontSize: 12, color: '#9CA3AF' },
+    monthBtnTextActive: { color: '#000', fontWeight: 'bold' },
+    newMonthBtn: { backgroundColor: '#10b981', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+    newMonthBtnText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+    profitCard: { borderRadius: 16, padding: 14, marginBottom: 12, backgroundColor: 'rgba(17, 24, 39, 0.9)', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    profitCardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    profitCardIcon: { fontSize: 24, marginRight: 8 },
+    profitCardTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF' },
+    profitGrid: { flexDirection: 'row', gap: 8 },
+    profitGridItem: { flex: 1, borderRadius: 10, padding: 10, alignItems: 'center' },
+    profitGridLabel: { fontSize: 11, marginBottom: 4 },
+    profitGridValue: { fontSize: 14, fontWeight: 'bold' },
+    profitGridUSD: { fontSize: 11 },
+    netProfitCard: { borderRadius: 16, padding: 16, marginTop: 8 },
+    netProfitTitle: { fontSize: 16, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 12 },
+    netProfitRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
+    netProfitItem: { alignItems: 'center' },
+    netProfitLabel: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
+    netProfitValue: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+    netProfitCount: { textAlign: 'center', color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+    logList: { padding: 16, paddingBottom: 100 },
+    logItem: { borderRadius: 12, padding: 12, marginBottom: 8 },
+    logHeader: { marginBottom: 6 },
+    logHeaderTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+    logAction: { fontSize: 13, fontWeight: 'bold' },
+    categoryBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+    categoryText: { fontSize: 11, fontWeight: '600' },
+    userBadge: { marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+    userBadgeText: { fontSize: 11, fontWeight: '600' },
+    logTime: { fontSize: 12, color: '#94a3b8' },
+    logProduct: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
+    logQty: { fontSize: 12 },
+    logProfit: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+    logLoss: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+    footer: { paddingVertical: 10, alignItems: 'center', backgroundColor: '#1e3a8a' },
+    footerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingHorizontal: 16 },
+    footerDecor: { flexDirection: 'row', gap: 8 },
+    decorBox: { width: 16, height: 16, borderRadius: 4, backgroundColor: '#f59e0b' },
+    footerTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+    footerBrand: { fontSize: 14, fontWeight: '600', color: '#f59e0b' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '80%', backgroundColor: '#0a1929', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.3)' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
+    modalClose: { fontSize: 20, color: '#9CA3AF' },
+    settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(212, 175, 55, 0.3)' },
+    settingInfo: { flex: 1 },
+    settingLabel: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+    settingDesc: { fontSize: 12, marginTop: 2, color: '#9CA3AF' },
+    settingBtn: { borderRadius: 12, padding: 14, marginTop: 12 },
+    settingBtnText: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
+    headerLogo: {height: 100,width: 100,marginBottom: -10,},
+    topRightContainer: {
+  position: 'absolute', // <<-- هذا هو السر! اجعله يطفو
+  top: 45,              // <<-- مسافة من الأعلى (تحت شريط الحالة)
+  right: 15,            // <<-- مسافة من اليمين
+  alignItems: 'flex-end', // اجعل كل شيء بداخله بمحاذاة اليمين
+},
+glassEffect: {
+  borderRadius: 16, // <<-- يجب أن تكون نفس حواف البطاقة
+  overflow: 'hidden', // <<-- أهم سطر لمنع تسرب الضبابية
+  padding: 14, // <<-- نفس الـ padding الخاص بالبطاقة
+},
+
+
 });
