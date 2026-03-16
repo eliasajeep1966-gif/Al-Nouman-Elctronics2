@@ -461,35 +461,52 @@ export default function ProductListScreen({
         )}
       </View>
 
-      {/* Floating Buttons - Gold Add Button in Middle */}
-      <View style={styles.floatingButtonsContainer}>
-        {/* Tools Floating Button at Bottom */}
-        <TouchableOpacity 
-          style={[styles.toolsFloatingBtn, { backgroundColor: COLORS.blue }} 
-          ]} 
-          onPress={() => setActiveTab('tools')}
-        >
-          <Text style={styles.toolsFloatingBtnIcon}>🖥️</Text>
-          <Text style={styles.toolsFloatingBtnText}>الأدوات</Text>
-        </TouchableOpacity>
-        
-        {/* Gold Floating Add Button - Between Profits and Tools */}
-        <TouchableOpacity 
-          style={styles.goldFloatingBtn} 
-          onPress={() => navigation.navigate('AddProduct', { category: activeTab === 'parts' ? 'parts' : 'tools' })}
-        >
-          <Text style={styles.goldFloatingBtnText}>+</Text>
-        </TouchableOpacity>
-        
-        {/* Profits Floating Button */}
-        <TouchableOpacity 
-          style={[styles.profitsFloatingBtn, { backgroundColor: '#10b981' }]} 
-          onPress={() => setActiveTab('profits')}
-        >
-          <Text style={styles.profitsFloatingBtnIcon}>📊</Text>
-          <Text style={styles.profitsFloatingBtnText}>الأرباح</Text>
-        </TouchableOpacity>
-      </View>
+       {/* Floating Buttons - Vertical Layout with Gold Add Button in Middle */}
+       <View style={styles.floatingButtonsContainer}>
+         {/* Parts Floating Button at Top */}
+         <TouchableOpacity 
+           style={[styles.partsFloatingBtn, { backgroundColor: activeTab === 'parts' ? '#fed7aa' : theme.card }]} 
+           onPress={() => setActiveTab('parts')}
+         >
+           <Text style={styles.partsFloatingBtnIcon}>⚙️</Text>
+           <Text style={[styles.partsFloatingBtnText, { color: activeTab === 'parts' ? theme.text : theme.textMuted }]}>قطع الغيار</Text>
+         </TouchableOpacity>
+         
+         {/* Gold Floating Add Button - Between Parts and Tools */}
+         <TouchableOpacity 
+           style={styles.goldFloatingBtn} 
+           onPress={() => navigation.navigate('AddProduct', { category: activeTab === 'parts' ? 'parts' : 'tools' })}
+         >
+           <Text style={styles.goldFloatingBtnText}>+</Text>
+         </TouchableOpacity>
+         
+         {/* Tools Floating Button - Between Add and Profits */}
+         <TouchableOpacity 
+           style={[styles.toolsFloatingBtn, { backgroundColor: activeTab === 'tools' ? '#c7d2fe' : theme.card }]} 
+           onPress={() => setActiveTab('tools')}
+         >
+           <Text style={styles.toolsFloatingBtnIcon}>🖥️</Text>
+           <Text style={[styles.toolsFloatingBtnText, { color: activeTab === 'tools' ? theme.text : theme.textMuted }]}>الأدوات</Text>
+         </TouchableOpacity>
+         
+         {/* Profits Floating Button - Between Tools and Log */}
+         <TouchableOpacity 
+           style={[styles.profitsFloatingBtn, { backgroundColor: activeTab === 'profits' ? '#a7f3d0' : theme.card }]} 
+           onPress={() => setActiveTab('profits')}
+         >
+           <Text style={styles.profitsFloatingBtnIcon}>📊</Text>
+           <Text style={[styles.profitsFloatingBtnText, { color: activeTab === 'profits' ? theme.text : theme.textMuted }]}>الأرباح</Text>
+         </TouchableOpacity>
+         
+         {/* Log Floating Button at Bottom */}
+         <TouchableOpacity 
+           style={[styles.logFloatingBtn, { backgroundColor: activeTab === 'log' ? '#e9d5ff' : theme.card }]} 
+           onPress={() => setActiveTab('log')}
+         >
+           <Text style={styles.logFloatingBtnIcon}>📋</Text>
+           <Text style={[styles.logFloatingBtnText, { color: activeTab === 'log' ? theme.text : theme.textMuted }]}>السجل</Text>
+         </TouchableOpacity>
+       </View>
 
       {/* Parts/Tools Content */}
       {(activeTab === 'parts' || activeTab === 'tools') && (
@@ -810,6 +827,109 @@ const styles = StyleSheet.create({
   decorBox: { width: 16, height: 16, borderRadius: 4, backgroundColor: '#f59e0b' },
   footerTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   footerBrand: { fontSize: 14, fontWeight: '600', color: '#f59e0b' },
+  // Floating buttons styles
+  floatingButtonsContainer: {
+    flexDirection: 'column',
+    gap: 12,
+    position: 'absolute',
+    right: 20,
+    top: 120,
+    alignItems: 'center'
+  },
+  partsFloatingBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4
+  },
+  partsFloatingBtnIcon: {
+    fontSize: 24
+  },
+  partsFloatingBtnText: {
+    fontSize: 12,
+    marginTop: 4
+  },
+  goldFloatingBtn: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: COLORS.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6
+  },
+  goldFloatingBtnText: {
+    fontSize: 36,
+    color: '#fff',
+    fontWeight: 'bold'
+  },
+  toolsFloatingBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4
+  },
+  toolsFloatingBtnIcon: {
+    fontSize: 24
+  },
+  toolsFloatingBtnText: {
+    fontSize: 12,
+    marginTop: 4
+  },
+  profitsFloatingBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4
+  },
+  profitsFloatingBtnIcon: {
+    fontSize: 24
+  },
+  profitsFloatingBtnText: {
+    fontSize: 12,
+    marginTop: 4
+  },
+  logFloatingBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4
+  },
+  logFloatingBtnIcon: {
+    fontSize: 24
+  },
+  logFloatingBtnText: {
+    fontSize: 12,
+    marginTop: 4
+  },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },

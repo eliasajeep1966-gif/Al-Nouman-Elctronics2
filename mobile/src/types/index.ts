@@ -49,4 +49,4 @@ export interface LossEntry {
 }
 
 // أنوع التبويبات
-export type TabId = 'parts' | 'tools' | 'profits' | 'log';
+export type TabId = 'parts' | 'tools' | 'profits' | 'log' | 'special';
