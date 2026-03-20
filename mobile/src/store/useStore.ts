@@ -106,6 +106,7 @@ async function syncLogsToSupabase(logs: LogEntry[]) {
         loss_amount_usd: l.lossAmountUSD,
         category: l.category,
         timestamp: l.timestamp,
+        user_id: l.performedBy,
       }))
     ).select();
     
@@ -130,6 +131,7 @@ async function syncLossesToSupabase(losses: LossEntry[]) {
         category: l.category,
         timestamp: l.timestamp,
         month: l.month,
+        user_id: l.performedBy,
       }))
     ).select();
     

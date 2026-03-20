@@ -125,6 +125,7 @@ async function syncLossesToSupabase(losses: LossEntry[]) {
         category: l.category,
         timestamp: l.timestamp,
         month: l.month,
+        performed_by: l.performedBy || '',
       }))
     ).select();
     

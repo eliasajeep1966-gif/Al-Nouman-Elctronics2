@@ -38,7 +38,8 @@ CREATE TABLE logs (
   loss_amount_usd REAL DEFAULT 0,
   category TEXT NOT NULL DEFAULT 'parts',
   timestamp TEXT NOT NULL,
-  user_id TEXT
+  user_id TEXT,
+  performed_by TEXT
 );
 
 CREATE TABLE losses (
@@ -49,7 +50,8 @@ CREATE TABLE losses (
   category TEXT NOT NULL DEFAULT 'parts',
   timestamp TEXT NOT NULL,
   month TEXT NOT NULL,
-  user_id TEXT
+  user_id TEXT,
+  performed_by TEXT
 );
 
 CREATE TABLE settings (
