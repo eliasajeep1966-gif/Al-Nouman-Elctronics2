@@ -405,7 +405,7 @@ export function useStore() {
     if (lowStockItems.length > 0) {
       sendNotification('⚠️ تنبيه مخزون منخفض', `${lowStockItems.length} منتجات تحت ${LOW_STOCK_THRESHOLD} وحدة`);
     }
-  }, [products, logs, exchangeRate, isOnline]);
+  }, [products, logs, exchangeRate, isOnline, userEmail]);
 
   const deleteProduct = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -435,7 +435,7 @@ export function useStore() {
     if (isOnline) {
       syncLogsToSupabase(updatedLogs);
     }
-  }, [products, logs, isOnline]);
+  }, [products, logs, isOnline, userEmail]);
 
   const sellProduct = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -486,7 +486,7 @@ export function useStore() {
     if (lowStockItems.length > 0) {
       sendNotification('⚠️ تنبيه مخزون منخفض', `${lowStockItems.length} منتجات تحت ${LOW_STOCK_THRESHOLD} وحدة`);
     }
-  }, [products, logs, exchangeRate, isOnline]);
+  }, [products, logs, exchangeRate, isOnline, userEmail]);
 
   const addLoss = useCallback((productId: string) => {
     const product = products.find(p => p.id === productId);
