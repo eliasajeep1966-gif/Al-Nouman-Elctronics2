@@ -1,52 +1,41 @@
 {
   "expo": {
     "name": "إلكترونيات النعمان",
-    "slug": "mobile",
+    "slug": "al-nouman-electronics",
     "version": "1.0.0",
-    "sdkVersion": "55.0.0",
-    "scheme": "electronics-store",
+    "orientation": "portrait",
+    "scheme": "nouman-electronics",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000B26"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.electronics.store"
+      "bundleIdentifier": "com.nouman.electronics"
     },
     "android": {
-      "package": "com.electronics.store",
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "electronics-store"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
-      ],
+      "package": "com.nouman.electronics",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#000B26"
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#1e1b4b",
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 200
-        }
-      ],
-      "expo-sharing"
-    ]
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8bf35811-3364-4375-a1d8-12a6ef021c85"
+      }
+    }
   }
 }

@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   ImageBackground,
   Image,
+  Alert,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 

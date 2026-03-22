@@ -17,6 +17,7 @@
     "expo": "~55.0.5",
     "expo-blur": "^55.0.9",
     "expo-file-system": "~19.0.3",
+    "expo-font": "~55.0.4",
     "expo-linear-gradient": "^55.0.8",
     "expo-linking": "~7.0.4",
     "expo-notifications": "~0.30.3",

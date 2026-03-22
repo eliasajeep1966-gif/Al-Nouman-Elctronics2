@@ -10,9 +10,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ProductCategory } from '../types';
+
+const { width } = Dimensions.get('window');
 
 type RootStackParamList = {
   ProductList: undefined;
@@ -36,342 +41,181 @@ type Props = {
   userId: string;
 };
 
-export default function AddProductScreen({ navigation, onAdd, exchangeRate, category, isDarkMode, userId }: Props) {
+export default function AddProductScreen({ navigation, onAdd, exchangeRate, category, isDarkMode }: Props) {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [originalPriceUSD, setOriginalPriceUSD] = useState('');
   const [sellingPriceUSD, setSellingPriceUSD] = useState('');
   const [specifications, setSpecifications] = useState('');
 
-  // حساب الأسعار بالليرة
+  // حسابات الأسعار والربح
   const originalPriceSYP = originalPriceUSD ? Math.round(parseFloat(originalPriceUSD) * exchangeRate) : 0;
   const sellingPriceSYP = sellingPriceUSD ? Math.round(parseFloat(sellingPriceUSD) * exchangeRate) : 0;
-
-  // حساب الربح
-  const profitUSD = sellingPriceUSD && originalPriceUSD
-    ? (parseFloat(sellingPriceUSD) - parseFloat(originalPriceUSD)).toFixed(2)
-    : null;
-  const profitSYP = profitUSD ? Math.round(parseFloat(profitUSD) * exchangeRate) : null;
+  const profitUSD = (sellingPriceUSD && originalPriceUSD) 
+    ? (parseFloat(sellingPriceUSD) - parseFloat(originalPriceUSD)).toFixed(2) 
+    : "0.00";
+  const profitSYP = Math.round(parseFloat(profitUSD) * exchangeRate);
 
   const handleSubmit = () => {
-    // Validation
-    if (!name.trim()) {
-      Alert.alert('خطأ', 'اسم المنتج مطلوب');
+    if (!name.trim() || !originalPriceUSD || !sellingPriceUSD) {
+      Alert.alert('تنبيه', 'يرجى ملء جميع الحقول المطلوبة الأساسية');
       return;
     }
-
-    const qty = parseInt(quantity) || 0;
-    const origUSD = parseFloat(originalPriceUSD) || 0;
-    const sellUSD = parseFloat(sellingPriceUSD) || 0;
-
-    if (qty < 1) {
-      Alert.alert('خطأ', 'الكمية يجب أن تكون 1 على الأقل');
-      return;
-    }
-
-    if (origUSD <= 0 || sellUSD <= 0) {
-      Alert.alert('خطأ', 'الأسعار مطلوبة');
-      return;
-    }
-
-    if (sellUSD < origUSD) {
-      Alert.alert('تحذير', 'سعر البيع أقل من سعر التكلفة!');
-    }
-
-    // Add product
-    onAdd(
-      name.trim(),
-      qty,
-      origUSD,
-      sellUSD,
-      category,
-      specifications.trim() || undefined
-    );
-
-    Alert.alert('✅ نجاح', 'تمت إضافة المنتج بنجاح', [
-      { text: 'موافق', onPress: () => navigation.goBack() }
-    ]);
-  };
-
-  const categoryLabel = category === 'parts' ? 'قطعة غيار' : 'أداة إلكترونية';
-
-  const theme = isDarkMode ? {
-    bg: '#0f172a',
-    card: '#1e293b',
-    text: '#f1f5f9',
-    textMuted: '#94a3b8',
-    border: '#334155',
-    inputBg: '#1e293b',
-  } : {
-    bg: '#f8fafc',
-    card: '#ffffff',
-    text: '#1e293b',
-    textMuted: '#64748b',
-    border: '#e2e8f0',
-    inputBg: '#ffffff',
+    onAdd(name.trim(), parseInt(quantity) || 1, parseFloat(originalPriceUSD), parseFloat(sellingPriceUSD), category, specifications.trim() || undefined);
+    navigation.goBack();
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={[styles.header, { backgroundColor: isDarkMode ? '#1e1b4b' : '#1e293b' }]}>
-            <Text style={styles.title}>إضافة {categoryLabel} جديدة</Text>
-            <Text style={styles.subtitle}>سعر الصرف: 1$ = {exchangeRate.toLocaleString('en-US')} ل.س</Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Name */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.text }]}>اسم المنتج *</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
-                value={name}
-                onChangeText={setName}
-                placeholder="أدخل اسم المنتج"
-                placeholderTextColor={theme.textMuted}
-              />
-            </View>
-
-            {/* Quantity */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.text }]}>الكمية *</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
-                value={quantity}
-                onChangeText={setQuantity}
-                placeholder="أدخل الكمية"
-                placeholderTextColor={theme.textMuted}
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Prices in USD - Like Website */}
-            <Text style={styles.sectionLabel}>الأسعار بالدولار الأمريكي ($)</Text>
+    <LinearGradient colors={['#1e1b4b', '#000']} style={styles.container}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={[styles.label, { color: theme.text }]}>سعر التكلفة ($) *</Text>
-                <TextInput
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
-                  value={originalPriceUSD}
-                  onChangeText={setOriginalPriceUSD}
-                  placeholder="$0.00"
-                  placeholderTextColor={theme.textMuted}
-                  keyboardType="decimal-pad"
-                />
-              </View>
+            {/* الهيدر المصمم */}
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>إضافة {category === 'parts' ? ' عنصر' : 'جهاز'}</Text>
+              <BlurView intensity={20} tint="light" style={styles.rateBadge}>
+                <Text style={styles.rateText}>سعر الصرف الحالي: {exchangeRate.toLocaleString()} ل.س</Text>
+              </BlurView>
+            </View>
 
-              <View style={[styles.inputGroup, styles.halfWidth]}>
-                <Text style={[styles.label, { color: theme.text }]}>سعر البيع ($) *</Text>
+            {/* حقل الاسم */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>اسم المنتج *</Text>
+              <BlurView intensity={15} tint="light" style={styles.inputContainer}>
                 <TextInput
-                  style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
+                  style={styles.input}
+                  placeholder=": IC  - A14 Bionic"
+                  placeholderTextColor="#6B7280"
+                  value={name}
+                  onChangeText={setName}
+                />
+              </BlurView>
+            </View>
+
+            {/* الكمية والأسعار بالدولار */}
+            <View style={styles.row}>
+              <View style={[styles.inputWrapper, { flex: 1 }]}>
+                <Text style={styles.label}>الكمية</Text>
+                <BlurView intensity={15} tint="light" style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={quantity}
+                    onChangeText={setQuantity}
+                  />
+                </BlurView>
+              </View>
+              <View style={[styles.inputWrapper, { flex: 1.5, marginLeft: 10 }]}>
+                <Text style={styles.label}>التكلفة ($)</Text>
+                <BlurView intensity={15} tint="light" style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholder="0.00"
+                    placeholderTextColor="#6B7280"
+                    value={originalPriceUSD}
+                    onChangeText={setOriginalPriceUSD}
+                  />
+                </BlurView>
+              </View>
+            </View>
+
+            {/* سعر البيع بالدولار */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>سعر البيع المقترح ($)</Text>
+              <BlurView intensity={15} tint="light" style={[styles.inputContainer, { borderColor: '#D4AF37' }]}>
+                <TextInput
+                  style={[styles.input, { color: '#D4AF37', fontWeight: 'bold' }]}
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                  placeholderTextColor="#D4AF37"
                   value={sellingPriceUSD}
                   onChangeText={setSellingPriceUSD}
-                  placeholder="$0.00"
-                  placeholderTextColor={theme.textMuted}
-                  keyboardType="decimal-pad"
                 />
-              </View>
+              </BlurView>
             </View>
 
-            {/* Calculated SYP Prices */}
-            {(originalPriceUSD || sellingPriceUSD) && (
-              <View style={styles.calculatedSection}>
-                <Text style={[styles.calculatedTitle, { color: theme.textMuted }]}>الأسعار بالليرة السورية</Text>
-                <View style={styles.calculatedRow}>
-                  <View style={[styles.calculatedCard, { backgroundColor: theme.card }]}>
-                    <Text style={[styles.calculatedLabel, { color: theme.textMuted }]}>سعر التكلفة</Text>
-                    <Text style={[styles.calculatedValue, { color: theme.text }]}>{originalPriceSYP.toLocaleString('en-US')} ل.س</Text>
-                  </View>
-                  <View style={[styles.calculatedCard, { backgroundColor: theme.card }]}>
-                    <Text style={[styles.calculatedLabel, { color: theme.textMuted }]}>سعر البيع</Text>
-                    <Text style={[styles.calculatedValue, { color: theme.text }]}>{sellingPriceSYP.toLocaleString('en-US')} ل.س</Text>
-                  </View>
-                  {profitSYP !== null && (
-                    <View style={[styles.calculatedCard, profitSYP >= 0 ? styles.profitCard : styles.lossCard]}>
-                      <Text style={styles.calculatedLabel}>الربح</Text>
-                      <Text style={[styles.calculatedValue, profitSYP >= 0 ? styles.profitValue : styles.lossValue]}>
-                        {profitSYP.toLocaleString('en-US')} ل.س
-                      </Text>
-                      <Text style={[styles.calculatedValueSmall, profitSYP >= 0 ? styles.profitValue : styles.lossValue]}>
-                        ${profitUSD}
-                      </Text>
-                    </View>
-                  )}
+            {/* قسم الحسابات التلقائية - تصميم البطاقة الذكية */}
+            {(originalPriceUSD !== '' || sellingPriceUSD !== '') && (
+              <BlurView intensity={30} tint="dark" style={styles.resultCard}>
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>سعر البيع بالليرة:</Text>
+                  <Text style={styles.resultValue}>{sellingPriceSYP.toLocaleString()} ل.س</Text>
                 </View>
-              </View>
+                <View style={[styles.resultRow, { marginTop: 10, borderTopWidth: 0.5, borderColor: 'rgba(212,175,55,0.2)', paddingTop: 10 }]}>
+                  <Text style={styles.resultLabel}>صافي الربح المتوقع:</Text>
+                  <Text style={[styles.resultValue, { color: parseFloat(profitUSD) >= 0 ? '#4ade80' : '#f87171' }]}>
+                    {profitSYP.toLocaleString()} ل.س (${profitUSD})
+                  </Text>
+                </View>
+              </BlurView>
             )}
 
-            {/* Specifications */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: theme.text }]}>المواصفات (اختياري)</Text>
-              <TextInput
-                style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
-                value={specifications}
-                onChangeText={setSpecifications}
-                placeholder="أدخل مواصفات المنتج"
-                placeholderTextColor={theme.textMuted}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
+            {/* المواصفات */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>المواصفات الفنية</Text>
+              <BlurView intensity={15} tint="light" style={[styles.inputContainer, { height: 100 }]}>
+                <TextInput
+                  style={[styles.input, { height: 90 }]}
+                  placeholder="أدخل موديل القطعة أو ملاحظات الصيانة..."
+                  placeholderTextColor="#6B7280"
+                  multiline
+                  textAlignVertical="top"
+                  value={specifications}
+                  onChangeText={setSpecifications}
+                />
+              </BlurView>
             </View>
 
-            {/* Submit Button */}
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.submitButtonText}>➕ إضافة المنتج</Text>
+            {/* زر الإضافة الذهبي */}
+            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+              <LinearGradient colors={['#D4AF37', '#B8860B']} style={styles.gradientBtn}>
+                <Text style={styles.submitText}>➕ حفظ في المستودع</Text>
+              </LinearGradient>
             </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  header: {
-    backgroundColor: '#1e293b',
-    padding: 24,
-    paddingTop: 40,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#818cf8',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  form: {
-    padding: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: 8,
+  container: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 40 },
+  header: { marginBottom: 25, alignItems: 'center' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 10 },
+  rateBadge: { paddingHorizontal: 15, paddingVertical: 6, borderRadius: 20, overflow: 'hidden' },
+  rateText: { color: '#D4AF37', fontSize: 13, fontWeight: '600' },
+  inputWrapper: { marginBottom: 20 },
+  label: { color: '#9CA3AF', fontSize: 14, marginBottom: 8, marginRight: 5, textAlign: 'right' },
+  inputContainer: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    color: '#1e293b',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4f46e5',
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  halfWidth: {
-    flex: 1,
-  },
-  calculatedSection: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  calculatedTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-    marginBottom: 8,
-  },
-  calculatedRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  calculatedCard: {
-    flex: 1,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 10,
-    padding: 12,
-    alignItems: 'center',
-  },
-  calculatedLabel: {
-    fontSize: 11,
-    color: '#64748b',
-    marginBottom: 4,
-  },
-  calculatedValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  calculatedValueSmall: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748b',
-    marginTop: 2,
-  },
-  profitCard: {
-    backgroundColor: '#dcfce7',
-    borderWidth: 1,
-    borderColor: '#86efac',
-  },
-  lossCard: {
-    backgroundColor: '#fee2e2',
-    borderWidth: 1,
-    borderColor: '#fca5a5',
-  },
-  profitValue: {
-    color: '#16a34a',
-  },
-  lossValue: {
-    color: '#dc2626',
-  },
-  submitButton: {
-    backgroundColor: '#4f46e5',
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 40,
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  submitButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    padding: 15,
     color: '#fff',
+    fontSize: 16,
+    textAlign: 'right',
   },
+  row: { flexDirection: 'row-reverse' },
+  resultCard: {
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    overflow: 'hidden',
+  },
+  resultRow: { flexDirection: 'row-reverse', justifyContent: 'space-between' },
+  resultLabel: { color: '#D1D5DB', fontSize: 15 },
+  resultValue: { color: '#D4AF37', fontSize: 18, fontWeight: 'bold' },
+  submitButton: { height: 60, borderRadius: 15, overflow: 'hidden', marginTop: 10, elevation: 5 },
+  gradientBtn: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  submitText: { color: '#000', fontSize: 18, fontWeight: 'bold' },
 });
