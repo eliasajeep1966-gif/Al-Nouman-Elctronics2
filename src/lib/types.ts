@@ -42,4 +42,5 @@ export interface LossEntry {
   category: ProductCategory;
   timestamp: string;
   month: string; // YYYY-MM
+  performedBy?: string; // اسم المستخدم الذي قام بالإجراء
 }

@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   ActivityIndicator,
   ImageBackground,
   Image,
@@ -46,9 +45,10 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         password,
       });
       if (error) {
-        Alert.alert('خطأ في تسجيل الدخول', error.message);
+        alert('خطأ في تسجيل الدخول: ' + error.message);
       } else if (data.user) {
         onLoginSuccess(data.user.id, email.trim());
+        alert('تم تسجيل الدخول بنجاح! مرحباً بك ' + email.split('@')[0]);
       }
     } catch (e) {
       Alert.alert('خطأ', 'حدث خطأ غير متوقع');

@@ -208,6 +208,7 @@ async function loadFromSupabase() {
       lossAmountUSD: l.loss_amount_usd,
       category: l.category as ProductCategory,
       timestamp: l.timestamp,
+      performedBy: l.user_id || undefined,
     }));
 
     const losses: LossEntry[] = (lossesRes.data || []).map(l => ({

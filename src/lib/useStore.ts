@@ -189,6 +189,7 @@ async function loadFromSupabase() {
       category: l.category,
       timestamp: l.timestamp,
       month: l.month,
+      performedBy: l.performed_by || undefined,
     }));
 
     const exchangeRate = settingsRes.data?.exchange_rate || DEFAULT_USD_TO_SYP;
@@ -543,6 +544,7 @@ export function useStore() {
           category: product.category,
           timestamp: formatTimestamp(),
           month: getCurrentMonth(),
+          performedBy: getUsername(),
         };
         const updatedLosses = [lossEntry, ...prevLosses];
         localStorage.setItem(LOSSES_KEY, JSON.stringify(updatedLosses));
@@ -553,6 +555,27 @@ export function useStore() {
       return updated;
     });
   }, []);
+
+  const clearAllData = useCallback(async () => {
+    setProducts([]);
+    setLogs([]);
+    setLosses([]);
+    
+    localStorage.removeItem(PRODUCTS_KEY);
+    localStorage.removeItem(LOGS_KEY);
+    localStorage.removeItem(LOSSES_KEY);
+    localStorage.removeItem(EXCHANGE_RATE_KEY);
+    
+    if (isOnline) {
+      try {
+        await supabase.from(TABLES.PRODUCTS).delete().neq('id', '');
+        await supabase.from(TABLES.LOGS).delete().neq('id', '');
+        await supabase.from(TABLES.LOSSES).delete().neq('id', '');
+      } catch (e) {
+        console.error('Error clearing Supabase data:', e);
+      }
+    }
+  }, [isOnline]);
 
   return {
     products,

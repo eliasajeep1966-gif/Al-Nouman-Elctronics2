@@ -397,14 +397,14 @@ export default function ProductListScreen({
                 </Text>
               </View>
             )}
-            {item.performedBy && (
-              <View style={[styles.userBadge, { backgroundColor: COLORS.gold }]}>
-                <Text style={[styles.userBadgeText, { color: '#000' }]}>@{item.performedBy.split('@')[0]}</Text>
-              </View>
-            )}
           </View>
           <Text style={styles.logTime}>{item.timestamp}</Text>
         </View>
+        {item.performedBy && (
+          <View style={[styles.userBadge, { backgroundColor: COLORS.gold, alignSelf: 'flex-start', marginTop: 4 }]}>
+            <Text style={[styles.userBadgeText, { color: '#000' }]}>@{item.performedBy.split('@')[0]}</Text>
+          </View>
+        )}
         <Text style={[styles.logProduct, { color: '#4f46e5' }]}>{item.productName}</Text>
         {item.quantity && <Text style={[styles.logQty, { color: theme.textMuted }]}>الكمية: {item.quantity}</Text>}
         {item.profit != null && item.profit > 0 && (
